@@ -1,42 +1,58 @@
-const { decodeWav } = require("./utils/wav-decoder.js");
+const WebSocket = require("ws");
 
-const express = require("express");
-const http = require("http");
-const path = require("path");
-const { Server } = require("socket.io");
-const fs = require("fs");
+const ALLOWED_ORIGINS = [
+  "https://jessicach4n.github.io",
+  "http://localhost:5500",
+];
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+const PORT = process.env.PORT || 8080;
 
-app.use(express.static(path.join(__dirname, '../client')));
+const clients = new Set();
 
-/** Decode Wav */
-
-const FILE_PATH = "./audio/2-channels.wav";
-const wavBuffer = fs.readFileSync(FILE_PATH);
-
-const arrayBuffer = wavBuffer.buffer.slice(
-  wavBuffer.byteOffset,
-  wavBuffer.byteOffset + wavBuffer.byteLength
-);
-
-const audio = decodeWav(arrayBuffer);
-
-io.on("connection", (socket) => {
-  
-  console.log("Client connected: " + socket.id);
-
-  socket.emit("audio-info", {
-    channels: audio.channels
-  });
-  
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
-  });
+const wss = new WebSocket.Server({
+  port: PORT,
+  verifyClient: ({ origin }) => {
+    if (!origin) return false;
+    return ALLOWED_ORIGINS.includes(origin);
+  },
 });
 
-server.listen(8080, '0.0.0.0', () => {
-  console.log('Server running on port 8080');
+wss.on("connection", (socket) => {
+  console.log("Client connected");
+  
+  socket.on("message", (data) => {
+    message = JSON.parse(data.toString());
+
+    switch (message.type) {
+        case "ready":
+            try {
+                clients.add(socket);
+                socket.send(JSON.stringify({ type: "ready" }));
+            }
+            catch (error) {
+                console.error("Error adding client:", error);
+            }
+        break;
+        case "play":
+            for (const client of clients) {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: "play" }));
+            }
+            }
+        break;
+        case "stop":
+            for (const client of clients) {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: "stop" }));
+            }
+            }
+        break;
+        default:
+            console.log("Unknown message type:", message.type);
+    }
+  });
+
+  socket.on("close", () => {
+    console.log("Client disconnected");
+  });
 });

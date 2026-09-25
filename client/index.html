@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="/socket.io/socket.io.js"></script> 
-    <script src="js/client.js" defer></script>
+    <script type="module" src="js/client.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <title>Distributed Listening</title>
 </head>
 <body>
     <h1>Hello world :D</h1>
-    <p id="display"></p>
+    <button id="start-btn">Interact with me FIRST</button>
+    <div id="controls">
+        <button id="play-btn">Play</button>
+        <button id="stop-btn">Stop</button>
+    </div>
 </body>
 </html>
