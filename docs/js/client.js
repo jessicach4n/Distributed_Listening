@@ -1,4 +1,6 @@
-const WS_URL = "ws://localhost:8080";
+const WS_URL = location.hostname === "localhost"
+  ? "ws://localhost:8080"
+  : "wss://distributed-listening.onrender.com";
 const socket = new WebSocket(WS_URL);
 
 const startBtn = document.getElementById("start-btn");
