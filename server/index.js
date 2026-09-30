@@ -48,7 +48,7 @@ wss.on("connection", (socket) => {
 
     switch (message.type) {
         case "ready":
-            phone.send({ type: "ready" });
+            phone.send({ type: "ready", group: phone.assignedGroup });
         break;
         case "play":
             for (const client of clients) {
