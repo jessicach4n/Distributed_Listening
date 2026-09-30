@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const WebSocket = require("ws");
 const Phone = require("./Phone");
 
@@ -8,11 +10,19 @@ const ALLOWED_ORIGINS = [
 
 const PORT = process.env.PORT || 8080;
 
-var numGroups = 3;
+// The score is the single source of truth for the piece. The server reads it
+// to know how many groups there are, and sends it to each phone on "ready".
+const SCORE_PATH = path.join(__dirname, "..", "docs", "test.json");
+const score = JSON.parse(fs.readFileSync(SCORE_PATH, "utf8"));
+const numGroups = Object.keys(score.groups).length;
 
-// Each group starts this much later than the one before it:
-// group 0 plays immediately, group 1 after 5s, group 2 after 10s.
-const GROUP_DELAY_MS = 5000;
+// How far in the future the shared timeline starts after "play" is pressed,
+// so every phone receives the cue before time 0 arrives.
+const START_LEAD_MS = 1000;
+
+// Server-clock time (ms) at which the timeline started, or null when stopped.
+// Phones that join mid-piece use this to jump to the right position.
+let startAt = null;
 
 const clients = new Set();
 
@@ -26,6 +36,7 @@ const wss = new WebSocket.Server({
 
 wss.on("listening", () => {
   console.log(`WebSocket server listening on ws://localhost:${PORT}`);
+  console.log(`Loaded score "${SCORE_PATH}" with ${numGroups} groups`);
 });
 
 wss.on("error", (error) => {
@@ -47,15 +58,24 @@ wss.on("connection", (socket) => {
     }
 
     switch (message.type) {
+        case "sync":
+            // Clock sync: echo the client's timestamp back with ours so the
+            // client can estimate the offset between the two clocks.
+            phone.send({ type: "sync", clientTime: message.clientTime, serverTime: Date.now() });
+        break;
         case "ready":
-            phone.send({ type: "ready" });
+            // Send the phone its group and the score. If the piece is already
+            // running, include startAt so it can join at the current position.
+            phone.send({ type: "ready", group: phone.assignedGroup, score, startAt });
         break;
         case "play":
+            startAt = Date.now() + START_LEAD_MS;
             for (const client of clients) {
-                client.play(client.assignedGroup * GROUP_DELAY_MS);
+                client.play(startAt);
             }
         break;
         case "stop":
+            startAt = null;
             for (const client of clients) {
                 client.stop();
             }
@@ -66,7 +86,6 @@ wss.on("connection", (socket) => {
   });
 
   socket.on("close", () => {
-    phone.cancelPendingPlay();
     clients.delete(phone);
     console.log(`Phone ${phone.id} disconnected, ${clients.size} connected`);
   });
