@@ -2,14 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script type="module" src="js/form.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <h1>JSON Form</h1>
     <form>
+        <!-- Project Name -->
         <label>Name</label>
-        <input type="text">
+        <p class="description">What is the title of your project</p>
+        <input type="text" placeholder="My project name">
+
+        <br><br>
+        
+        <!-- Audio section -->
+        <h4>Audio</h4>
+        <label>Add audio files</label>
+        <br>
+        <section id="audio_section">
+            <div id="form_horizontal" >
+                <div id="form_verticle">
+                    <label>Audio file name</label>
+                    <input type="text" placeholder="Enter audio file name">
+                </div>
+                <div id="form_verticle">
+                    <label>Audio name</label>
+                    <input type="text" placeholder="Enter audio name">
+                </div>   
+                <button id="removeAudio" class="removeAudio" type="button">- Remove Audio</button>
+            </div>
+        </section>
+        
+        <br>
+        <button id="addAudio" type="button">+ Add Audio</button>
+
+
+        <!-- Groupe slection -->
+        <br><br>
+        <h3>Grouping</h3>
+        <label>How many groups are needed ?</label>
+        <br>
+        <select id="groupSelection">
+            <option value="0" selected="selected" disabled hidden>Choose here</option>
+            <option value="1" >1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+        </select>
+        
+
+        <br><br>
+
+        <section id="groupeSection">   
+
+        </section>
+
+        <select>
+            <option >Play</option>
+            <option >Set</option>
+            <option >Ramp</option>
+            <option >Gain</option>
+        </select>
+
+
 
     </form>
 </body>

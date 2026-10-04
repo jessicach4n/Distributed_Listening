@@ -1,3 +1,16 @@
 #controls {
     display: None;
+    
+}
+
+
+#form_horizontal{
+    display:flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+#form_verticle{
+    display: flex;
+    flex-direction: column;
 }
