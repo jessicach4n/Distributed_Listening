@@ -1,3 +1,22 @@
 #controls {
     display: None;
 }
+
+/* JSON FORM */
+
+.description {
+    margin: 0 0 0.6rem;
+    color: #666;
+    font-size: 0.9rem;
+} */
+
+.form_horizontal {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+
+.form_vertical {
+    display: flex;
+    flex-direction: column;
+}
