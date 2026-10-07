@@ -4,6 +4,7 @@ document.getElementById("addAudio").addEventListener('click', function(){
     //create <div id="form_horizontal">
     var newDivHorizontal= document.createElement('div');
     newDivHorizontal.id='form_horizontal';
+    newDivHorizontal.className='form_horizontal';
     
 
     //=======AUDIO FILE  
@@ -63,14 +64,15 @@ document.getElementById("removeAudio").addEventListener('click',function(event){
     // var audio = button.closest('.form_verticle');
     // var audio = button.parentElement;
     
-    var audio= event.target.closest('.audio_input');
-
+    var audio = event.target.closest('.form_horizontal');
+     console.log(event.target);
 
     if(audio){
        audio.remove(); 
     }
     
 });
+
 
 //==============ADD GROUP CARD FUNCTION==========
 document.getElementById("groupSelection").addEventListener('change', function(){
