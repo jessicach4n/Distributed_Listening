@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Form</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="js/form.js"></script>
+</head>
+<body>
+    <h1>Score Form</h1>
+
+    <form id="projectForm">
+        <!-- Project -->
+        <label>Name</label>
+        <p class="description">What is the title of your project</p>
+        <input type="text" name="projectName" placeholder="My project name" required>
+
+        <br><br>
+
+        <!-- group -->
+        <label>Which group are you in?</label>
+        <br>
+        <select id="groupSelection" name="group" required>
+            <option value="" selected disabled hidden>Choose here</option>
+            <option value="1">Group 1</option>
+            <option value="2">Group 2</option>
+            <option value="3">Group 3</option>
+            <option value="4">Group 4</option>
+            <option value="5">Group 5</option>
+        </select>
+
+        <!-- Sounds -->
+        <h3>Your sounds</h3>
+        <section id="audio_section">
+            <div class="audio-row form_horizontal">
+                <div class="form_vertical">
+                    <label>Sound file</label>
+                    <input type="file" class="audioFile" accept="audio/*">
+                </div>
+                <div class="form_vertical">
+                    <label>Sound name</label>
+                    <input type="text" class="audioName" placeholder="e.g. Rain">
+                </div>
+                <button class="removeAudio" type="button">- Remove sound</button>
+            </div>
+        </section>
+        <button id="addAudio" type="button">+ Add sound</button>
+
+        <!-- Score -->
+        <h3>Your score</h3>
+        <p class="description">Add one cue for each time a sound plays in the order they happen</p>
+        <section id="scoreSection"></section>
+        <button id="addCue" type="button">+ Add cue</button>
+
+        <br><br>
+        <button type="submit">Download score (JSON)</button>
+    </form>
+
+    <!-- cue blueprin -->
+    <template id="cueTemplate">
+        <div class="cue">
+            <div class="cue-header">
+                <h4>Cue</h4>
+                <button type="button" class="removeCue">- Remove cue</button>
+            </div>
+
+            <div class="fields">
+                <div class="form_vertical">
+                    <label>Sound</label>
+                    <select data-key="sound" class="soundPick"></select>
+                </div>
+                <div class="form_vertical">
+                    <label>Starts at (sec)</label>
+                    <input type="number" data-key="startTime" min="0" step="0.1" value="0">
+                </div>
+                <div class="form_vertical">
+                    <label>Plays for (sec)</label>
+                    <input type="number" data-key="duration" min="0" step="0.1" value="0" title="0 = play the whole file">
+                </div>
+                <div class="form_vertical">
+                    <label>&nbsp;</label>
+                    <label><input type="checkbox" data-key="loop"> Loop</label>
+                </div>
+            </div>
+
+            <fieldset>
+                <legend>Volume + fades</legend>
+                <div class="fields">
+                    <div class="form_vertical">
+                        <label>Volume</label>
+                        <div class="slider-row">
+                            <input type="range" data-key="volume" min="0" max="1.5" step="0.01" value="1">
+                            <output>1</output>
+                        </div>
+                    </div>
+                    <div class="form_vertical">
+                        <label>Fade in (sec)</label>
+                        <input type="number" data-key="fadeIn" min="0" step="0.1" value="0">
+                    </div>
+                    <div class="form_vertical">
+                        <label>Fade out (sec)</label>
+                        <input type="number" data-key="fadeOut" min="0" step="0.1" value="0">
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Effects</legend>
+                <div class="fields">
+                    <div class="form_vertical">
+                        <label>Pan</label>
+                        <div class="slider-row">
+                            <input type="range" data-key="pan" min="-1" max="1" step="0.01" value="0">
+                            <output>0</output>
+                        </div>
+                    </div>
+                    <div class="form_vertical">
+                        <label>Speed</label>
+                        <div class="slider-row">
+                            <input type="range" data-key="speed" min="0.5" max="2" step="0.01" value="1">
+                            <output>1</output>
+                        </div>
+                    </div>
+                    <div class="form_vertical">
+                        <label>Reverb</label>
+                        <div class="slider-row">
+                            <input type="range" data-key="reverb" min="0" max="1" step="0.01" value="0">
+                            <output>0</output>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="transition">
+                <legend>Transition into the next cue</legend>
+                <div class="fields">
+                    <div class="form_vertical">
+                        <label>Type</label>
+                        <select data-key="transitionType" class="transitionPick">
+                            <option value="none">None </option>
+                            <option value="crossfade">Crossfade </option>
+                            <option value="fade-through">Fade out fade in</option>
+                        </select>
+                    </div>
+                    <div class="form_vertical transitionLength" hidden>
+                        <label>Transition length (secs)</label>
+                        <input type="number" data-key="transitionDuration" min="0" step="0.1" value="1">
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </template>
+</body>
+</html>
