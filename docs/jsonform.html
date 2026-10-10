@@ -22,29 +22,19 @@
         <label>Add audio files</label>
         <br>
         <section id="audio_section">
-            <div id="form_horizontal" class="form_horizontal" >
-                <div id="form_verticle">
+            <div id="row" class="row" >
+                <div id="column">
                     <label>Audio file name</label>
                     <input type="text" placeholder="Enter audio file name">
                 </div>
-                <div id="form_verticle">
+                <div id="column">
                     <label>Audio name</label>
-                    <input type="text" placeholder="Enter audio name">
+                    <input type="text" class="audioNameInput" placeholder="Enter audio name">
+                    <!-- <input type="text" placeholder="Enter audio name"> -->
                 </div>   
                 <button id="removeAudio" class="removeAudio" type="button">- Remove Audio</button>
             </div>
 
-             <div id="form_horizontal" class="form_horizontal" >
-                <div id="form_verticle">
-                    <label>Audio file name</label>
-                    <input type="text" placeholder="Enter audio file name">
-                </div>
-                <div id="form_verticle">
-                    <label>Audio name</label>
-                    <input type="text" placeholder="Enter audio name">
-                </div>   
-                <button id="removeAudio2" class="removeAudio" type="button">- Remove Audio</button>
-            </div>
         </section>
         
         <br>
@@ -72,12 +62,7 @@
 
         </section>
 
-        <select>
-            <option >Play</option>
-            <option >Set</option>
-            <option >Ramp</option>
-            <option >Gain</option>
-        </select>
+       <button> Generate JSON File</button>
 
 
 

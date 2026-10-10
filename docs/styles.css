@@ -1,16 +1,72 @@
+h4{
+    margin: 0px;
+}
+
 #controls {
     display: None;
     
 }
 
 
-#form_horizontal{
+#row{
     display:flex;
     flex-direction: row;
     gap: 10px;
 }
 
-#form_verticle{
+.row{
+    display:flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 10px;
+    margin: 10px;
+
+}
+
+#column{
     display: flex;
     flex-direction: column;
+}
+.column{
+    display: flex;
+    flex-direction: column;
+}
+#groupSelection{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.GroupeCard{
+    background-color: antiquewhite;
+    padding: 18px;
+    margin: 12px;
+}
+
+button{
+    background-color: aliceblue;
+    height: 20px;
+}
+
+.select{
+    height: 40px;
+}
+
+
+
+.effectsListSection{
+    padding: 12px;
+    margin-bottom: 12px;
+    /* display: flex;
+    flex-direction: column; */
+    gap: 12px;
+}
+
+.effectFields {
+    margin: 0;
+    padding: 0;
+}
+
+.eventFields {
+    margin: 0;
+    padding: 0;
 }
