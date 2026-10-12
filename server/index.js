@@ -1,9 +1,10 @@
 const WebSocket = require("ws");
-const Phone = require("./Phone");
+const Phone = require("./components/Phone");
 
 const ALLOWED_ORIGINS = [
   "https://jessicach4n.github.io",
   "http://localhost:5500",
+  "http://127.0.0.1:5500"
 ];
 
 const PORT = process.env.PORT || 8080;
