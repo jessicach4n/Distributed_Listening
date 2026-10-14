@@ -40,9 +40,6 @@ function stopAudio() {
 
 function syncClock(samples = 5) {
   return new Promise((resolve) => {
-
-function syncClock(samples = 5) {
-  return new Promise((resolve) => {
     const results = [];
     const ping = () => socket.send(JSON.stringify({ type: "sync", clientTime: Date.now() }));
 
@@ -218,7 +215,6 @@ socket.addEventListener("open", () => {
       console.error("Could not initialize audio:", error);
     }
   });
-  });
 
   playBtn.addEventListener("click", () => {
     socket.send(JSON.stringify({ type: "play" }));
@@ -252,9 +248,7 @@ socket.addEventListener("open", () => {
         activeSource.connect(audioContext.destination);
         activeSource.start();
       }
-    }
-
-    else if (message.type === "stop") {
+    } else if (message.type === "stop") {
       startAt = null;
       if (part) {
         stopTimeline();
