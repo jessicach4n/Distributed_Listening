@@ -9,7 +9,6 @@ class Phone {
     this.id = nextId++;
     this.assignedGroup = this.id % numGroups;
     this.isActive = false;
-    this.pendingPlay = null; // timer for a delayed play that hasn't fired yet
   }
 
   send(message) {
@@ -18,27 +17,16 @@ class Phone {
     }
   }
 
-  play(delayMs = 0) {
-    this.cancelPendingPlay();
-    this.pendingPlay = setTimeout(() => {
-      this.pendingPlay = null;
-      this.isActive = true;
-      this.send({ type: "play" });
-      console.log(`Phone ${this.id} (group ${this.assignedGroup}) playing`);
-    }, delayMs);
+  // startAt is the server-clock time (ms) at which the piece's timeline is at 0.
+  play(startAt) {
+    this.isActive = true;
+    this.send({ type: "play", startAt });
+    console.log(`Phone ${this.id} (group ${this.assignedGroup}) playing`);
   }
 
   stop() {
-    this.cancelPendingPlay();
     this.isActive = false;
     this.send({ type: "stop" });
-  }
-
-  cancelPendingPlay() {
-    if (this.pendingPlay) {
-      clearTimeout(this.pendingPlay);
-      this.pendingPlay = null;
-    }
   }
 }
 
