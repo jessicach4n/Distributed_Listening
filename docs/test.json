@@ -1,0 +1,27 @@
+{
+  "title": "Test Piece",
+  "sounds": {
+    "test": "audio/test.wav",
+    "belly": "audio/belly.wav"
+  },
+  "groups": {
+    "0": {
+      "effects": [],
+      "events": [
+        { "at": 0, "play": "test" },
+        { "at": 0, "play": "belly" },
+        { "at": 0, "set": "gain", "value": 0 },
+        { "at": 0, "ramp": "gain", "to": 1, "over": 4 }
+      ]
+    },
+    "1": {
+      "effects": [
+        { "id": "filter", "type": "lowpass", "frequency": 500 }
+      ],
+      "events": [
+        { "at": 5, "play": "belly" },
+        { "at": 10, "ramp": "filter.frequency", "to": 3000, "over": 8 }
+      ]
+    }
+  }
+}
