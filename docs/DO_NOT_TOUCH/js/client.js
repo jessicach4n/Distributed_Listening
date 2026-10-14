@@ -8,9 +8,7 @@ const playBtn = document.getElementById("play-btn");
 const stopBtn = document.getElementById("stop-btn");
 const groupId = document.getElementById("group-id");
 
-const audioPlayer = new AudioPlayer(
-  new URL("../../audio-files/test.wav", import.meta.url),
-);
+const audioPlayer = new AudioPlayer();
 
 const socket = new Socket(WS_URL, {
   onOpen() {
@@ -18,7 +16,7 @@ const socket = new Socket(WS_URL, {
       startBtn.disabled = true;
 
       try {
-        await Promise.all([audioPlayer.resume(), audioPlayer.initialize()]);
+        await Promise.all([audioPlayer.resume(), audioPlayer.syncClock(socket)]);
         socket.send({ type: "ready" });
       } catch (error) {
         console.error("Could not initialize audio:", error);
@@ -39,13 +37,19 @@ const socket = new Socket(WS_URL, {
   onMessage(message) {
     switch (message.type) {
       case "ready":
-        controls.style.display = "block";
-        startBtn.style.display = "none";
-        groupId.textContent = `Group ${message.group}`;
+        audioPlayer.initialize(message.score, message.group, message.startAt)
+          .then(() => {
+            controls.style.display = "block";
+            startBtn.style.display = "none";
+            groupId.textContent = `Group ${message.group}`;
+          })
+          .catch((error) => {
+            console.error("Could not prepare audio:", error);
+          });
         break;
 
       case "play":
-        audioPlayer.play();
+        audioPlayer.play(message.startAt);
         break;
 
       case "stop":

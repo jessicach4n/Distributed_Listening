@@ -1,8 +1,8 @@
 {
   "title": "Test Piece",
   "sounds": {
-    "test": "audio/test.wav",
-    "belly": "audio/belly.wav"
+    "test": "audio-files/test.wav",
+    "belly": "audio-files/belly.wav"
   },
   "groups": {
     "0": {
