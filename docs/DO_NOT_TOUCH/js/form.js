@@ -93,17 +93,17 @@ const EVENTS = {
 // options is a list like [{value: 'pad', label: 'pad'}, ...]
 function fillSelect(select, options, placeholder){
     var previous = select.value;
-    select.innerHTML = "";
+    select.textContent = "";
 
     var placeholderOption = document.createElement('option');
     placeholderOption.value = "";
-    placeholderOption.innerHTML = placeholder;
+    placeholderOption.textContent = placeholder;
     select.appendChild(placeholderOption);
 
     options.forEach(function(o){
         var option = document.createElement('option');
         option.value = o.value;
-        option.innerHTML = o.label;
+        option.textContent = o.label;
         select.appendChild(option);
     });
 
@@ -122,7 +122,7 @@ function createField(f){
     if (f.showWhen) { fieldDiv.dataset.showWhen = f.showWhen; }
 
     var label = document.createElement('label');
-    label.innerHTML = f.label;
+    label.textContent = f.label;
 
     var input;
     if (f.kind === 'select') {
@@ -131,7 +131,7 @@ function createField(f){
         f.options.forEach(function(optionName){
             var option = document.createElement('option');
             option.value = optionName;
-            option.innerHTML = optionName;
+            option.textContent = optionName;
             input.appendChild(option);
         });
 
@@ -187,7 +187,7 @@ document.getElementById("addAudio").addEventListener('click', function(){
     divAudioFile.className='column';
 
     var labelAudioFile = document.createElement('label');
-    labelAudioFile.innerHTML = "Audio file name";
+    labelAudioFile.textContent = "Audio file name";
 
     var inputAudioFile= document.createElement('input');
     inputAudioFile.type="text";
@@ -198,7 +198,7 @@ document.getElementById("addAudio").addEventListener('click', function(){
     divAudioName.className='column';
 
     var labelAudioName = document.createElement('label');
-    labelAudioName.innerHTML = "Audio Name";
+    labelAudioName.textContent = "Audio Name";
 
     var inputAudioName= document.createElement('input');
     inputAudioName.type="text";
@@ -208,7 +208,7 @@ document.getElementById("addAudio").addEventListener('click', function(){
     //====DELETE AUDIO BUTTON
     var deletAudioButton =document.createElement('button');
     deletAudioButton.className='removeAudio';
-    deletAudioButton.innerHTML="- Remove Audio";
+    deletAudioButton.textContent="- Remove Audio";
     deletAudioButton.type="button";
 
     divAudioFile.appendChild(labelAudioFile);
@@ -286,7 +286,7 @@ function createEffectRow(effectsListSection){
 
     //create label
     var effectLabel = document.createElement('label');
-    effectLabel.innerHTML = "Select effect";
+    effectLabel.textContent = "Select effect";
 
     //create the dropdown of effect type, one option for each effect in EFFECTS
     var effectSelect = document.createElement('select');
@@ -294,7 +294,7 @@ function createEffectRow(effectsListSection){
     for (var key in EFFECTS) {
         var option = document.createElement('option');
         option.value = key;                    // 'reverb'
-        option.innerHTML = EFFECTS[key].label; // 'Reverb'
+        option.textContent = EFFECTS[key].label; // 'Reverb'
         effectSelect.appendChild(option);
     }
 
@@ -315,10 +315,10 @@ function createEffectRow(effectsListSection){
 
     //when the user picks another effect, replace the inputs
     effectSelect.addEventListener('change', function(){
-        fieldsBox.innerHTML = "";
+        fieldsBox.textContent = "";
         fieldsBox.appendChild(createFields(EFFECTS[effectSelect.value].fields, "effectFields row"));
         updateLfoVisibility(effectRow);
-        refreshTargetDropdowns(effectRow.closest('.GroupeCard'));
+        refreshTargetDropdowns(effectRow.closest('.groupCard'));
     });
 
     // //optional id (needed if a group has two effects of the same type)
@@ -330,9 +330,9 @@ function createEffectRow(effectsListSection){
     //delete button
     var deleteButton = document.createElement('button');
     deleteButton.type = "button";
-    deleteButton.innerHTML = "- Delete";
+    deleteButton.textContent = "- Delete";
     deleteButton.addEventListener('click', function(){
-        var card = effectRow.closest('.GroupeCard');   // get the card BEFORE removing
+        var card = effectRow.closest('.groupCard');   // get the card BEFORE removing
         effectRow.remove();
         refreshTargetDropdowns(card);
     });
@@ -352,7 +352,7 @@ function createEffectRow(effectsListSection){
 
     //the row is on the page now, so the targets can include this effect
     updateLfoVisibility(effectRow);
-    refreshTargetDropdowns(effectRow.closest('.GroupeCard'));
+    refreshTargetDropdowns(effectRow.closest('.groupCard'));
 }
 
 
@@ -363,7 +363,7 @@ function createEffectInput(newCard){
     effectSection.className = "effectSection";
 
     var title = document.createElement('h4');
-    title.innerHTML = "Effects";
+    title.textContent = "Effects";
 
     //the list where effect rows will go
     var effectsListSection = document.createElement('div');
@@ -372,7 +372,7 @@ function createEffectInput(newCard){
     //add effect button
     var addButton = document.createElement('button');
     addButton.type = "button";
-    addButton.innerHTML = "+ Add Effect";
+    addButton.textContent = "+ Add Effect";
     // clicking the button creates a new row of effect inputs
     addButton.addEventListener('click', function(){
         createEffectRow(effectsListSection);
@@ -409,7 +409,7 @@ function createPhoneInput(newCard){
 
         //create label
         var nbOfPhonesLabel= document.createElement('label');
-        nbOfPhonesLabel.innerHTML="Select a number of phones you want in this group?"
+        nbOfPhonesLabel.textContent="Select a number of phones you want in this group?"
 
         //create field input
         var nbOfPhoneInput= document.createElement('input');
@@ -513,14 +513,14 @@ function createEventRow(eventsListSection){
     var actionDiv = document.createElement('div');
     actionDiv.className="column";
     var actionLabel = document.createElement('label');
-    actionLabel.innerHTML = "Action";
+    actionLabel.textContent = "Action";
     var actionSelect = document.createElement('select');
     actionSelect.className = "eventAction";
 
     for (var key in EVENTS) {
         var option = document.createElement('option');
         option.value = key;                   // 'play'
-        option.innerHTML = EVENTS[key].label; // 'Play'
+        option.textContent = EVENTS[key].label; // 'Play'
         actionSelect.appendChild(option);
     }
     actionDiv.appendChild(actionLabel);
@@ -535,7 +535,7 @@ function createEventRow(eventsListSection){
     //delete button
     var deleteButton = document.createElement('button');
     deleteButton.type = "button";
-    deleteButton.innerHTML = "- Delete";
+    deleteButton.textContent = "- Delete";
     deleteButton.addEventListener('click', function(){
         eventRow.remove();
     });
@@ -546,11 +546,11 @@ function createEventRow(eventsListSection){
     eventRow.appendChild(deleteButton);
     eventsListSection.appendChild(eventRow);
 
-    var card = eventsListSection.closest('.GroupeCard');
+    var card = eventsListSection.closest('.groupCard');
 
     //when the action changes, swap the inputs and refill the dropdowns
     actionSelect.addEventListener('change', function(){
-        fieldsBox.innerHTML = "";
+        fieldsBox.textContent = "";
         fieldsBox.appendChild(createFields(EVENTS[actionSelect.value].fields, "eventFields row"));
         refreshSoundDropdowns();
         refreshTargetDropdowns(card);
@@ -568,14 +568,14 @@ function createEventInput(newCard){
     eventSection.className = "eventSection";
 
     var title = document.createElement('h4');
-    title.innerHTML = "Events";
+    title.textContent = "Events";
 
     var eventsListSection = document.createElement('div');
     eventsListSection.className="eventsListSection";
 
     var addButton = document.createElement('button');
     addButton.type = "button";
-    addButton.innerHTML = "+ Add Event";
+    addButton.textContent = "+ Add Event";
 
     //when the user clicks the button, create a new row of event inputs
     addButton.addEventListener('click', function(){
@@ -601,11 +601,11 @@ function createEventInput(newCard){
  function createGroupCard(index){
         //create a single card
         var newCard= document.createElement('div');
-        newCard.className="GroupeCard";
+        newCard.className="groupCard";
 
         //Name the card
         var titleGroupeNb = document.createElement('h4');
-        titleGroupeNb.innerHTML="Groupe "+index;
+        titleGroupeNb.textContent="Group "+index;
         newCard.appendChild(titleGroupeNb);
 
         //add a phone input for each group
@@ -627,7 +627,7 @@ document.getElementById("groupSelection").addEventListener('change', function(){
     var value = Number(this.value);
 
     //remove all previous cards
-    document.querySelectorAll(".GroupeCard").forEach(function(card) {
+    document.querySelectorAll(".groupCard").forEach(function(card) {
         card.remove();
     });
 
