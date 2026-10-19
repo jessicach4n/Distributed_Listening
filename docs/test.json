@@ -1,26 +1,77 @@
 {
-  "title": "Test Piece",
+  "title": "Mock Piece",
   "sounds": {
-    "test": "audio/test.wav",
-    "belly": "audio/belly.wav"
+    "pad": "audio/pad.wav",
+    "bell1": "audio/Bell1.wav",
+    "bell2": "audio/Bell2.wav",
+    "bell3": "audio/Bell3.wav",
+    "foley1": "audio/foley1.wav",
+    "foley2": "audio/foley2.wav",
+    "pond": "audio/foleyPond.wav"
   },
   "groups": {
     "0": {
-      "effects": [],
+      "name": "Pad",
+      "effects": [
+        { "type": "lowpass", "frequency": 400, "q": 1 },
+        { "type": "reverb", "decay": 8, "preDelay": 0.05, "mix": 0.3 },
+        { "type": "pan", "pan": -0.3 }
+      ],
       "events": [
-        { "at": 0, "play": "test" },
-        { "at": 0, "play": "belly" },
-        { "at": 0, "set": "gain", "value": 0 },
-        { "at": 0, "ramp": "gain", "to": 1, "over": 4 }
+        { "at": 0, "play": "pad" },
+        { "at": 0, "set": "volume", "value": 0 },
+        { "at": 0, "ramp": "volume", "to": 1, "over": 12 },
+        { "at": 20, "ramp": "lowpass.frequency", "to": 3000, "over": 30 },
+        { "at": 20, "ramp": "lowpass.q", "to": 4, "over": 30 },
+        { "at": 60, "ramp": "reverb.mix", "to": 0.8, "over": 20 },
+        { "at": 95, "ramp": "lowpass.frequency", "to": 500, "over": 20 },
+        { "at": 95, "ramp": "lowpass.q", "to": 1, "over": 20 },
+        { "at": 110, "ramp": "volume", "to": 0, "over": 14 }
       ]
     },
     "1": {
+      "name": "Bells (melody)",
       "effects": [
-        { "id": "filter", "type": "lowpass", "frequency": 500 }
+        { "type": "pitch", "semitones": 0, "mix": 1 },
+        { "type": "delay", "time": 0.375, "feedback": 0.3, "mix": 0.25 },
+        { "type": "pan", "pan": -0.8 }
       ],
       "events": [
-        { "at": 5, "play": "belly" },
-        { "at": 10, "ramp": "filter.frequency", "to": 3000, "over": 8 }
+        { "at": 15, "play": "bell1" },
+        { "at": 28, "play": "bell2" },
+        { "at": 30, "ramp": "pan.pan", "to": 0.8, "over": 20 },
+        { "at": 45, "ramp": "delay.feedback", "to": 0.7, "over": 10 },
+        { "at": 55, "set": "pitch.semitones", "value": 5 },
+        { "at": 55, "play": "bell1" },
+        { "at": 68, "play": "bell2" },
+        { "at": 75, "ramp": "delay.time", "to": 0.6, "over": 8 },
+        { "at": 80, "ramp": "delay.mix", "to": 0.5, "over": 10 },
+        { "at": 95, "ramp": "pan.pan", "to": 0, "over": 10 },
+        { "at": 100, "ramp": "volume", "to": 0, "over": 15 }
+      ]
+    },
+    "2": {
+      "name": "Bell 3 + foley",
+      "effects": [
+        { "type": "highpass", "frequency": 120 },
+        { "type": "bandpass", "q": 2, "lfo": { "rate": 0.1, "min": 400, "max": 3000 } },
+        { "type": "reverb", "decay": 3, "preDelay": 0.02, "mix": 0.25 }
+      ],
+      "events": [
+        { "at": 5, "play": "pond" },
+        { "at": 5, "set": "volume", "value": 0 },
+        { "at": 5, "ramp": "volume", "to": 1, "over": 6 },
+        { "at": 35, "play": "bell3" },
+        { "at": 40, "ramp": "bandpass.rate", "to": 0.5, "over": 20 },
+        { "at": 48, "play": "foley1" },
+        { "at": 51, "play": "foley2" },
+        { "at": 56, "play": "foley1" },
+        { "at": 58.5, "play": "foley2" },
+        { "at": 63, "play": "foley1" },
+        { "at": 70, "ramp": "reverb.mix", "to": 0.7, "over": 10 },
+        { "at": 75, "play": "pond" },
+        { "at": 88, "play": "bell3" },
+        { "at": 105, "ramp": "volume", "to": 0, "over": 15 }
       ]
     }
   }

@@ -7,6 +7,7 @@ const startBtn = document.getElementById("start-btn");
 const controls = document.getElementById("controls");
 const playBtn = document.getElementById("play-btn");
 const stopBtn = document.getElementById("stop-btn");
+const groupId = document.getElementById("group-id");
 
 // --- Clock sync ------------------------------------------------------------
 // The server's clock defines the shared timeline. We ping it a few times and
@@ -37,41 +38,115 @@ function syncClock(samples = 5) {
 }
 
 // --- Building this phone's part from the score ----------------------------
-// Signal chain: players -> effects... -> gain -> destination.
+// Signal chain: players -> effects (in score order) -> volume -> destination.
 // Built once, when the server tells us our group and sends the score.
 let part = null; // { players, params, events }
 
-// Turns one effect entry from the score into a Tone.js node.
+// Turns one effect entry from the score into a Tone.js node, plus the settings
+// events can change, as { name: { param, initial } }. A setting with `apply`
+// instead of `param` can only be "set", not ramped (Tone has no smooth control
+// for it). Every setting not given in the score falls back to the default here.
 function createEffect(effect) {
   switch (effect.type) {
     case "lowpass":
     case "highpass":
-    case "bandpass":
-      return new Tone.Filter(effect.frequency, effect.type);
+    case "bandpass": {
+      const frequency = effect.frequency ?? 1000; // Hz
+      const q = effect.q ?? 1;                    // resonance
+      const node = new Tone.Filter({ type: effect.type, frequency, Q: q });
+      const params = { q: { param: node.Q, initial: q } };
+
+      if (effect.lfo) {
+        // LFO-driven: the cutoff sweeps between min and max, `rate` times per
+        // second. The LFO owns the cutoff, so "frequency" can't also be ramped.
+        const { rate = 0.2, min = 200, max = 2000 } = effect.lfo;
+        const lfo = new Tone.LFO(rate, min, max).connect(node.frequency).start();
+        params.rate = { param: lfo.frequency, initial: rate };
+      } else {
+        params.frequency = { param: node.frequency, initial: frequency };
+      }
+      return { node, params };
+    }
+
+    case "pan": {
+      const pan = effect.pan ?? 0; // -1 = left, 0 = centre, 1 = right
+      const node = new Tone.Panner(pan);
+      return { node, params: { pan: { param: node.pan, initial: pan } } };
+    }
+
+    case "reverb": {
+      const mix = effect.mix ?? 0.3; // 0 = dry, 1 = fully wet
+      const node = new Tone.Reverb({
+        decay: effect.decay ?? 4,          // seconds for the tail to die away
+        preDelay: effect.preDelay ?? 0.01, // seconds before the reverb starts
+        wet: mix,
+      });
+      // The reverb tail is generated asynchronously; `ready` resolves when done.
+      return { node, params: { mix: { param: node.wet, initial: mix } }, ready: node.ready };
+    }
+
+    case "delay": {
+      const time = effect.time ?? 0.25;        // seconds between echoes
+      const feedback = effect.feedback ?? 0.4; // 0–0.95, how many echoes repeat
+      const mix = effect.mix ?? 0.3;
+      const node = new Tone.FeedbackDelay({ delayTime: time, feedback, wet: mix, maxDelay: 5 });
+      return {
+        node,
+        params: {
+          time: { param: node.delayTime, initial: time },
+          feedback: { param: node.feedback, initial: feedback },
+          mix: { param: node.wet, initial: mix },
+        },
+      };
+    }
+
+    case "pitch": {
+      const semitones = effect.semitones ?? 0; // +12 = octave up, -12 = octave down
+      const mix = effect.mix ?? 1;
+      const node = new Tone.PitchShift({ pitch: semitones, wet: mix });
+      return {
+        node,
+        params: {
+          semitones: { apply: (value) => (node.pitch = value), initial: semitones },
+          mix: { param: node.wet, initial: mix },
+        },
+      };
+    }
+
     default:
       console.warn("Unknown effect type, skipping:", effect.type);
       return null;
   }
 }
 
+// Sets a setting immediately at audio-clock `time`, whichever kind it is.
+function setValue(target, value, time) {
+  if (target.param) target.param.setValueAtTime(value, time);
+  else target.apply(value);
+}
+
 async function buildPart(score, group) {
   const groupPart = score.groups[group];
-  const gain = new Tone.Gain(1).toDestination();
+  const volume = new Tone.Gain(1).toDestination();
 
-  // Anything an event can "set" or "ramp", by name: "gain" or "<effectId>.frequency".
+  // Anything an event can "set" or "ramp", by name: "volume" or "<effectId>.<setting>".
+  // An effect's id defaults to its type, so one reverb is just "reverb.mix".
   // `initial` is the value it returns to whenever the timeline restarts.
-  const params = { gain: { param: gain.gain, initial: 1 } };
+  const params = { volume: { param: volume.gain, initial: 1 } };
   const effectNodes = [];
+  const pending = []; // effects still getting ready (reverb)
   for (const effect of groupPart.effects) {
-    const node = createEffect(effect);
-    if (!node) continue;
-    effectNodes.push(node);
-    if (effect.id && node.frequency) {
-      params[`${effect.id}.frequency`] = { param: node.frequency, initial: effect.frequency };
+    const created = createEffect(effect);
+    if (!created) continue;
+    effectNodes.push(created.node);
+    if (created.ready) pending.push(created.ready);
+    const id = effect.id ?? effect.type;
+    for (const [name, target] of Object.entries(created.params)) {
+      params[`${id}.${name}`] = target;
     }
   }
-  Tone.connectSeries(...effectNodes, gain);
-  const input = effectNodes[0] ?? gain;
+  Tone.connectSeries(...effectNodes, volume);
+  const input = effectNodes[0] ?? volume;
 
   // One player per sound this group actually uses; paths are relative to the page.
   const players = {};
@@ -88,6 +163,9 @@ async function buildPart(score, group) {
     } else if (target !== undefined && !params[target]) {
       console.warn("Unknown target, skipping event:", event);
       continue;
+    } else if (event.ramp !== undefined && !params[target].param) {
+      console.warn(`"${target}" can only be set, not ramped; skipping:`, event);
+      continue;
     }
     events.push(event);
   }
@@ -95,6 +173,7 @@ async function buildPart(score, group) {
   events.sort((a, b) => a.at - b.at);
 
   await Tone.loaded(); // wait for every audio file to finish loading
+  await Promise.all(pending);
   return { players, params, events };
 }
 
@@ -107,7 +186,7 @@ let startAt = null;
 function applyEvent(event, time) {
   if (event.play !== undefined) part.players[event.play].start(time);
   else if (event.stop !== undefined) part.players[event.stop].stop(time);
-  else if (event.set !== undefined) part.params[event.set].param.setValueAtTime(event.value, time);
+  else if (event.set !== undefined) setValue(part.params[event.set], event.value, time);
   else if (event.ramp !== undefined) part.params[event.ramp].param.rampTo(event.to, event.over, time);
 }
 
@@ -139,10 +218,10 @@ function catchUp(position, startTime) {
     }
   }
 
-  for (const [name, { param }] of Object.entries(part.params)) {
-    param.cancelScheduledValues(0);
-    param.setValueAtTime(values[name], Tone.now());
-    if (ramps[name]) param.rampTo(ramps[name].to, ramps[name].over, startTime);
+  for (const [name, target] of Object.entries(part.params)) {
+    target.param?.cancelScheduledValues(0);
+    setValue(target, values[name], Tone.now());
+    if (ramps[name]) target.param.rampTo(ramps[name].to, ramps[name].over, startTime);
   }
   for (const [sound, at] of Object.entries(playing)) {
     const player = part.players[sound];
@@ -203,6 +282,7 @@ socket.addEventListener("open", () => {
       part = await buildPart(message.score, message.group);
       controls.style.display = "block";
       startBtn.style.display = "none";
+      groupId.textContent = `Group ${message.group}`;
       // startAt may also have been set by a "play" that arrived while loading.
       if (startAt !== null) startTimeline();
     }
