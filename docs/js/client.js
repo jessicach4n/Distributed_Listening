@@ -9,10 +9,34 @@ const playBtn = document.getElementById("play-btn");
 const stopBtn = document.getElementById("stop-btn");
 const groupId = document.getElementById("group-id");
 
+const audioContext = new AudioContext();
+let audioBuffer;
+let activeSource;
+
 // --- Clock sync ------------------------------------------------------------
 // The server's clock defines the shared timeline. We ping it a few times and
 // keep the offset from the fastest round trip (least network noise).
 let clockOffset = 0; // serverTime - localTime, in ms
+
+const audioBufferPromise = fetch(new URL("../audio/test.wav", import.meta.url))
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error(`Could not load audio: ${response.status}`);
+    }
+    return response.arrayBuffer();
+  })
+  .then((data) => audioContext.decodeAudioData(data))
+  .then((buffer) => {
+    audioBuffer = buffer;
+  });
+
+function stopAudio() {
+  if (activeSource) {
+    activeSource.stop();
+    activeSource.disconnect();
+    activeSource = null;
+  }
+}
 
 function syncClock(samples = 5) {
   return new Promise((resolve) => {
@@ -259,10 +283,15 @@ socket.addEventListener("open", () => {
   console.log("Connected to WebSocket server");
 
   startBtn.addEventListener("click", async () => {
-    // Tone.start() must run inside a user gesture to unlock audio.
-    await Tone.start();
-    await syncClock();
-    socket.send(JSON.stringify({ type: "ready" }));
+    try {
+      // Tone.start() must run inside a user gesture to unlock audio.
+      await Tone.start();
+      await syncClock();
+      await Promise.all([audioContext.resume(), audioBufferPromise]);
+      socket.send(JSON.stringify({ type: "ready" }));
+    } catch (error) {
+      console.error("Could not initialize audio:", error);
+    }
   });
 
   playBtn.addEventListener("click", () => {
@@ -289,12 +318,22 @@ socket.addEventListener("open", () => {
 
     if (message.type === "play") {
       startAt = message.startAt;
-      if (part) startTimeline();
-    }
-
-    else if (message.type === "stop") {
+      if (part) {
+        startTimeline();
+      } else {
+        stopAudio();
+        activeSource = audioContext.createBufferSource();
+        activeSource.buffer = audioBuffer;
+        activeSource.connect(audioContext.destination);
+        activeSource.start();
+      }
+    } else if (message.type === "stop") {
       startAt = null;
-      if (part) stopTimeline();
+      if (part) {
+        stopTimeline();
+      } else {
+        stopAudio();
+      }
     }
   });
 });
