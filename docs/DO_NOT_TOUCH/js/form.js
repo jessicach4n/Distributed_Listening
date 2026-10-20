@@ -346,7 +346,7 @@ function createEffectRow(effectsListSection){
     // effectRow.appendChild(subEffectSection);
     effectRow.appendChild(selectEffectDiv);
     effectRow.appendChild(fieldsBox);
-        // subEffectSection.appendChild(effectIdInput);
+    effectRow.appendChild(effectIdInput);
     effectRow.appendChild(deleteButton);
     effectsListSection.appendChild(effectRow);
 
@@ -367,10 +367,11 @@ function createEffectInput(newCard){
 
     //the list where effect rows will go
     var effectsListSection = document.createElement('div');
-    effectSection.className="effectsListSection";
+    effectsListSection.className="effectsListSection";
 
     //add effect button
     var addButton = document.createElement('button');
+    addButton.className = "addEffectButton";
     addButton.type = "button";
     addButton.textContent = "+ Add Effect";
     // clicking the button creates a new row of effect inputs
@@ -413,8 +414,10 @@ function createPhoneInput(newCard){
 
         //create field input
         var nbOfPhoneInput= document.createElement('input');
-        nbOfPhoneInput.type="text";
-        nbOfPhoneInput.placeholder="1";
+        nbOfPhoneInput.type="number";
+        nbOfPhoneInput.min = "1";
+        nbOfPhoneInput.placeholder="3";
+        nbOfPhoneInput.dataset.field = "phones";
 
         newPhoneInputSection.appendChild(nbOfPhonesLabel);
         newPhoneInputSection.appendChild(nbOfPhoneInput);
@@ -574,6 +577,7 @@ function createEventInput(newCard){
     eventsListSection.className="eventsListSection";
 
     var addButton = document.createElement('button');
+    addButton.className = "addEventButton";
     addButton.type = "button";
     addButton.textContent = "+ Add Event";
 
@@ -637,3 +641,9 @@ document.getElementById("groupSelection").addEventListener('change', function(){
         document.getElementById("groupeSection").appendChild(card);
     }
 });
+
+// Export functions to be reused by loadJson.js
+export {
+    refreshSoundDropdowns,
+    refreshTargetDropdowns
+};
