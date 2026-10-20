@@ -1,0 +1,37 @@
+{
+  "title": "Drift (phasing study)",
+  "sounds": {
+    "charango1": "audio-files/Charango1.wav"
+  },
+  "groups": {
+    "0": {
+      "name": "Group 1: steady",
+      "effects": [
+        { "type": "reverb", "decay": 4, "preDelay": 0.02, "mix": 0.2 },
+        { "type": "pan", "pan": -0.6 }
+      ],
+      "events": [
+        { "at": 0, "play": "charango1", "loop": true },
+        { "at": 76, "ramp": "volume", "to": 0, "over": 10 },
+        { "at": 88, "stop": "charango1" }
+      ]
+    },
+    "1": {
+      "name": "Group 2: drifting",
+      "effects": [
+        { "type": "drift", "rate": 1 },
+        { "type": "reverb", "decay": 4, "preDelay": 0.02, "mix": 0.2 },
+        { "type": "pan", "pan": 0.6 }
+      ],
+      "events": [
+        { "at": 0, "play": "charango1", "loop": true },
+        { "at": 8, "set": "drift.rate", "value": 1.025 },
+        { "at": 16, "set": "drift.rate", "value": 1 },
+        { "at": 30, "set": "drift.rate", "value": 1.025 },
+        { "at": 56, "set": "drift.rate", "value": 1 },
+        { "at": 76, "ramp": "volume", "to": 0, "over": 10 },
+        { "at": 88, "stop": "charango1" }
+      ]
+    }
+  }
+}

@@ -13,7 +13,8 @@ const PORT = process.env.PORT || 8080;
 
 // The score is the single source of truth for the piece. The server reads it
 // to know how many groups there are, and sends it to each phone on "ready".
-const SCORE_PATH = path.join(__dirname, "..", "docs", "test.json");
+// Pick a different score from docs/ with the SCORE env var, e.g. SCORE=test2.json.
+const SCORE_PATH = path.join(__dirname, "..", "docs", process.env.SCORE || "test.json");
 const score = JSON.parse(fs.readFileSync(SCORE_PATH, "utf8"));
 const numGroups = Object.keys(score.groups).length;
 
@@ -65,6 +66,8 @@ wss.on("connection", (socket) => {
             phone.send({ type: "sync", clientTime: message.clientTime, serverTime: Date.now() });
         break;
         case "ready":
+            // Send the phone its group and the score. If the piece is already
+            // running, include startAt so it can join at the current position.
             phone.send({ type: "ready", group: phone.assignedGroup, score, startAt });
         break;
         case "play":
