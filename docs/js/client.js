@@ -70,7 +70,7 @@ let part = null; // { players, params, events }
 // events can change, as { name: { param, initial } }. A setting with `apply`
 // instead of `param` can only be "set", not ramped (Tone has no smooth control
 // for it). Every setting not given in the score falls back to the default here.
-function createEffect(effect) {
+function createEffect(effect, players) {
   switch (effect.type) {
     case "lowpass":
     case "highpass":
@@ -137,6 +137,17 @@ function createEffect(effect) {
       };
     }
 
+    case "drift": {
+      // Not a node in the chain: it sets the playback speed of every sound in
+      // the group (like tape, faster is also slightly higher). Two groups
+      // looping the same sound at slightly different rates slowly phase apart.
+      const rate = effect.rate ?? 1; // 1 = normal, 1.02 = 2% faster
+      const apply = (value) => {
+        for (const player of Object.values(players)) player.playbackRate = value;
+      };
+      return { node: null, params: { rate: { apply, initial: rate, isRate: true } } };
+    }
+
     default:
       console.warn("Unknown effect type, skipping:", effect.type);
       return null;
@@ -157,23 +168,25 @@ async function buildPart(score, group) {
   // An effect's id defaults to its type, so one reverb is just "reverb.mix".
   // `initial` is the value it returns to whenever the timeline restarts.
   const params = { volume: { param: volume.gain, initial: 1 } };
+  const players = {}; // filled in below; created first so "drift" can reach them
+  let rateTarget = null; // the "drift.rate" param, if this group drifts
   const effectNodes = [];
   const pending = []; // effects still getting ready (reverb)
   for (const effect of groupPart.effects) {
-    const created = createEffect(effect);
+    const created = createEffect(effect, players);
     if (!created) continue;
-    effectNodes.push(created.node);
+    if (created.node) effectNodes.push(created.node);
     if (created.ready) pending.push(created.ready);
     const id = effect.id ?? effect.type;
     for (const [name, target] of Object.entries(created.params)) {
       params[`${id}.${name}`] = target;
+      if (target.isRate) rateTarget = `${id}.${name}`;
     }
   }
   Tone.connectSeries(...effectNodes, volume);
   const input = effectNodes[0] ?? volume;
 
   // One player per sound this group actually uses; paths are relative to the page.
-  const players = {};
   const events = [];
   for (const event of groupPart.events) {
     const sound = event.play ?? event.stop;
@@ -184,6 +197,13 @@ async function buildPart(score, group) {
         continue;
       }
       players[sound] ??= new Tone.Player(new URL(score.sounds[sound], document.baseURI).href).connect(input);
+      if (rateTarget) players[sound].playbackRate = params[rateTarget].initial;
+      // "loop": true loops the whole file; "loop": [start, end] loops that
+      // section (seconds into the file). It applies every time the sound plays.
+      if (event.loop) {
+        const [loopStart, loopEnd] = Array.isArray(event.loop) ? event.loop : [0, 0]; // 0 end = file end
+        Object.assign(players[sound], { loop: true, loopStart, loopEnd });
+      }
     } else if (target !== undefined && !params[target]) {
       console.warn("Unknown target, skipping event:", event);
       continue;
@@ -198,7 +218,7 @@ async function buildPart(score, group) {
 
   await Tone.loaded(); // wait for every audio file to finish loading
   await Promise.all(pending);
-  return { players, params, events };
+  return { players, params, events, rateTarget };
 }
 
 // --- The shared timeline ---------------------------------------------------
@@ -219,14 +239,26 @@ function applyEvent(event, time) {
 function catchUp(position, startTime) {
   const values = {};
   const ramps = {};   // ramps still in progress at `position`
-  const playing = {}; // sound -> timeline time it started
+  const playing = {}; // sound -> { offset: seconds into the file, since: timeline time }
   for (const [name, { initial }] of Object.entries(part.params)) values[name] = initial;
+  // Under "drift" the file moves at `rate` seconds per second, so a playing
+  // sound's file position is advanced whenever the rate changes.
+  const rate = () => (part.rateTarget ? values[part.rateTarget] : 1);
+  const advance = (time) => {
+    for (const p of Object.values(playing)) {
+      p.offset += (time - p.since) * rate();
+      p.since = time;
+    }
+  };
 
   for (const event of part.events) {
     if (event.at >= position) break;
-    if (event.play !== undefined) playing[event.play] = event.at;
+    if (event.play !== undefined) playing[event.play] = { offset: 0, since: event.at };
     else if (event.stop !== undefined) delete playing[event.stop];
-    else if (event.set !== undefined) {
+    else if (event.set === part.rateTarget && part.rateTarget) {
+      advance(event.at);
+      values[event.set] = event.value;
+    } else if (event.set !== undefined) {
       values[event.set] = event.value;
       delete ramps[event.set];
     } else if (event.ramp !== undefined) {
@@ -247,10 +279,18 @@ function catchUp(position, startTime) {
     setValue(target, values[name], Tone.now());
     if (ramps[name]) target.param.rampTo(ramps[name].to, ramps[name].over, startTime);
   }
-  for (const [sound, at] of Object.entries(playing)) {
+  advance(position);
+  for (const [sound, { offset }] of Object.entries(playing)) {
     const player = part.players[sound];
-    const offset = position - at; // how far into the file we should be
-    if (offset < player.buffer.duration) player.start(startTime, offset);
+    if (player.loop) {
+      // Fold the position back into the loop once it has gone around.
+      const loopEnd = player.loopEnd || player.buffer.duration;
+      const length = loopEnd - player.loopStart;
+      const into = offset < loopEnd ? offset : player.loopStart + ((offset - player.loopStart) % length);
+      player.start(startTime, into);
+    } else if (offset < player.buffer.duration) {
+      player.start(startTime, offset);
+    }
   }
 }
 

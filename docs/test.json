@@ -1,77 +1,162 @@
 {
-  "title": "Mock Piece",
+  "title": "Distributed Listening",
   "sounds": {
     "pad": "audio/pad.wav",
+    "birds": "audio/ReverbBirds.wav",
     "bell1": "audio/Bell1.wav",
     "bell2": "audio/Bell2.wav",
     "bell3": "audio/Bell3.wav",
+    "charango1": "audio/Charango1.wav",
+    "charango2": "audio/Charango2.wav",
     "foley1": "audio/foley1.wav",
     "foley2": "audio/foley2.wav",
     "pond": "audio/foleyPond.wav"
   },
   "groups": {
     "0": {
-      "name": "Pad",
+      "name": "Group 1: pad, birds, foley",
       "effects": [
-        { "type": "lowpass", "frequency": 400, "q": 1 },
+        { "type": "lowpass", "frequency": 350, "q": 1 },
+        { "type": "delay", "time": 0.45, "feedback": 0.45, "mix": 0 },
         { "type": "reverb", "decay": 8, "preDelay": 0.05, "mix": 0.3 },
-        { "type": "pan", "pan": -0.3 }
+        { "type": "pan", "pan": -0.7 }
       ],
       "events": [
         { "at": 0, "play": "pad" },
         { "at": 0, "set": "volume", "value": 0 },
-        { "at": 0, "ramp": "volume", "to": 1, "over": 12 },
-        { "at": 20, "ramp": "lowpass.frequency", "to": 3000, "over": 30 },
-        { "at": 20, "ramp": "lowpass.q", "to": 4, "over": 30 },
-        { "at": 60, "ramp": "reverb.mix", "to": 0.8, "over": 20 },
-        { "at": 95, "ramp": "lowpass.frequency", "to": 500, "over": 20 },
-        { "at": 95, "ramp": "lowpass.q", "to": 1, "over": 20 },
-        { "at": 110, "ramp": "volume", "to": 0, "over": 14 }
+        { "at": 0, "ramp": "volume", "to": 1, "over": 15 },
+        { "at": 10, "ramp": "lowpass.frequency", "to": 1800, "over": 25 },
+        { "at": 20, "play": "birds" },
+        { "at": 20, "ramp": "pan.pan", "to": -0.2, "over": 60 },
+        { "at": 29.5, "ramp": "delay.mix", "to": 0.35, "over": 0.5 },
+        { "at": 30, "play": "foley1" },
+        { "at": 33.5, "play": "foley1" },
+        { "at": 38, "play": "foley1" },
+        { "at": 42, "ramp": "delay.mix", "to": 0.08, "over": 6 },
+        { "at": 46, "ramp": "reverb.mix", "to": 0.55, "over": 20 },
+        { "at": 75, "play": "birds" },
+        { "at": 80, "ramp": "lowpass.frequency", "to": 4000, "over": 20 },
+        { "at": 102, "ramp": "lowpass.frequency", "to": 400, "over": 18 },
+        { "at": 105, "ramp": "volume", "to": 0, "over": 18 }
       ]
     },
     "1": {
-      "name": "Bells (melody)",
+      "name": "Group 2: bells, foley, pad",
       "effects": [
-        { "type": "pitch", "semitones": 0, "mix": 1 },
-        { "type": "delay", "time": 0.375, "feedback": 0.3, "mix": 0.25 },
-        { "type": "pan", "pan": -0.8 }
+        { "type": "highpass", "frequency": 200 },
+        { "type": "pitch", "semitones": -12, "mix": 0 },
+        { "type": "delay", "time": 0.5, "feedback": 0.35, "mix": 0.2 },
+        { "type": "reverb", "decay": 6, "preDelay": 0.03, "mix": 0.35 },
+        { "type": "pan", "pan": -0.5 }
       ],
       "events": [
-        { "at": 15, "play": "bell1" },
-        { "at": 28, "play": "bell2" },
-        { "at": 30, "ramp": "pan.pan", "to": 0.8, "over": 20 },
-        { "at": 45, "ramp": "delay.feedback", "to": 0.7, "over": 10 },
-        { "at": 55, "set": "pitch.semitones", "value": 5 },
-        { "at": 55, "play": "bell1" },
-        { "at": 68, "play": "bell2" },
-        { "at": 75, "ramp": "delay.time", "to": 0.6, "over": 8 },
-        { "at": 80, "ramp": "delay.mix", "to": 0.5, "over": 10 },
-        { "at": 95, "ramp": "pan.pan", "to": 0, "over": 10 },
-        { "at": 100, "ramp": "volume", "to": 0, "over": 15 }
+        { "at": 10, "play": "bell1" },
+        { "at": 10, "ramp": "pan.pan", "to": 0.5, "over": 30 },
+        { "at": 30, "play": "bell2" },
+        { "at": 39, "ramp": "delay.feedback", "to": 0.6, "over": 1 },
+        { "at": 40, "play": "foley2" },
+        { "at": 42.5, "play": "foley2" },
+        { "at": 45, "play": "foley2" },
+        { "at": 48, "ramp": "delay.feedback", "to": 0.35, "over": 6 },
+        { "at": 60, "ramp": "highpass.frequency", "to": 40, "over": 5 },
+        { "at": 62, "ramp": "volume", "to": 0.75, "over": 3 },
+        { "at": 65, "play": "pad" },
+        { "at": 85, "ramp": "pitch.mix", "to": 0.4, "over": 5 },
+        { "at": 90, "play": "bell2" },
+        { "at": 90, "ramp": "pan.pan", "to": -0.3, "over": 20 },
+        { "at": 100, "ramp": "volume", "to": 0, "over": 23 },
+        { "at": 124, "stop": "pad" }
       ]
     },
     "2": {
-      "name": "Bell 3 + foley",
+      "name": "Group 3: charango 1, bells",
       "effects": [
-        { "type": "highpass", "frequency": 120 },
-        { "type": "bandpass", "q": 2, "lfo": { "rate": 0.1, "min": 400, "max": 3000 } },
-        { "type": "reverb", "decay": 3, "preDelay": 0.02, "mix": 0.25 }
+        { "type": "pitch", "semitones": 0, "mix": 0 },
+        { "type": "delay", "time": 0.375, "feedback": 0.4, "mix": 0.3 },
+        { "type": "reverb", "decay": 5, "preDelay": 0.02, "mix": 0.3 },
+        { "type": "pan", "pan": 0.6 }
       ],
       "events": [
-        { "at": 5, "play": "pond" },
-        { "at": 5, "set": "volume", "value": 0 },
-        { "at": 5, "ramp": "volume", "to": 1, "over": 6 },
-        { "at": 35, "play": "bell3" },
-        { "at": 40, "ramp": "bandpass.rate", "to": 0.5, "over": 20 },
-        { "at": 48, "play": "foley1" },
-        { "at": 51, "play": "foley2" },
-        { "at": 56, "play": "foley1" },
-        { "at": 58.5, "play": "foley2" },
-        { "at": 63, "play": "foley1" },
-        { "at": 70, "ramp": "reverb.mix", "to": 0.7, "over": 10 },
-        { "at": 75, "play": "pond" },
-        { "at": 88, "play": "bell3" },
-        { "at": 105, "ramp": "volume", "to": 0, "over": 15 }
+        { "at": 0, "set": "volume", "value": 0.85 },
+        { "at": 15, "play": "bell2" },
+        { "at": 29, "set": "volume", "value": 1 },
+        { "at": 30, "play": "charango1" },
+        { "at": 30, "ramp": "pan.pan", "to": -0.2, "over": 20 },
+        { "at": 35, "play": "charango1" },
+        { "at": 39.5, "set": "pitch.semitones", "value": 7 },
+        { "at": 39.5, "set": "pitch.mix", "value": 0.5 },
+        { "at": 40, "play": "charango1" },
+        { "at": 44.5, "set": "pitch.semitones", "value": 12 },
+        { "at": 45, "play": "charango1" },
+        { "at": 47.5, "play": "charango1" },
+        { "at": 50, "play": "charango1" },
+        { "at": 52, "set": "pitch.mix", "value": 0 },
+        { "at": 76, "set": "pitch.semitones", "value": -5 },
+        { "at": 76, "set": "pitch.mix", "value": 0.5 },
+        { "at": 77.5, "play": "charango1" },
+        { "at": 80, "play": "charango1" },
+        { "at": 82, "set": "pitch.mix", "value": 0 },
+        { "at": 88, "ramp": "reverb.mix", "to": 0.6, "over": 4 },
+        { "at": 90, "play": "bell3" },
+        { "at": 90, "ramp": "pan.pan", "to": -0.4, "over": 25 },
+        { "at": 105, "ramp": "volume", "to": 0, "over": 18 }
+      ]
+    },
+    "3": {
+      "name": "Group 4: charango 2, bells",
+      "effects": [
+        { "type": "lowpass", "q": 0.7, "lfo": { "rate": 0.05, "min": 900, "max": 7000 } },
+        { "type": "delay", "time": 0.5, "feedback": 0.35, "mix": 0.25 },
+        { "type": "reverb", "decay": 7, "preDelay": 0.04, "mix": 0.35 },
+        { "type": "pan", "pan": 0.6 }
+      ],
+      "events": [
+        { "at": 0, "set": "volume", "value": 0.85 },
+        { "at": 20, "play": "bell3" },
+        { "at": 48, "ramp": "lowpass.rate", "to": 0.4, "over": 2 },
+        { "at": 49, "set": "volume", "value": 1 },
+        { "at": 50, "play": "charango2" },
+        { "at": 50, "ramp": "pan.pan", "to": -0.4, "over": 20 },
+        { "at": 55, "play": "charango2" },
+        { "at": 60, "play": "charango2" },
+        { "at": 62, "ramp": "delay.feedback", "to": 0.75, "over": 4 },
+        { "at": 65, "play": "charango2" },
+        { "at": 65, "ramp": "delay.mix", "to": 0.5, "over": 2 },
+        { "at": 67.5, "play": "charango2" },
+        { "at": 70, "play": "charango2" },
+        { "at": 72, "ramp": "delay.feedback", "to": 0.3, "over": 8 },
+        { "at": 72, "ramp": "delay.mix", "to": 0.2, "over": 8 },
+        { "at": 72, "ramp": "lowpass.rate", "to": 0.05, "over": 10 },
+        { "at": 90, "ramp": "pan.pan", "to": 0.3, "over": 10 },
+        { "at": 95, "ramp": "reverb.mix", "to": 0.65, "over": 5 },
+        { "at": 97, "play": "bell1" },
+        { "at": 105, "ramp": "volume", "to": 0, "over": 18 }
+      ]
+    },
+    "4": {
+      "name": "Group 5: deep pad, pond, bell",
+      "effects": [
+        { "type": "pitch", "semitones": -12, "mix": 0.5 },
+        { "type": "lowpass", "frequency": 900, "q": 0.5 },
+        { "type": "reverb", "decay": 10, "preDelay": 0.08, "mix": 0.45 },
+        { "type": "pan", "pan": 0 }
+      ],
+      "events": [
+        { "at": 10, "play": "pad" },
+        { "at": 10, "set": "volume", "value": 0 },
+        { "at": 10, "ramp": "volume", "to": 0.9, "over": 12 },
+        { "at": 15, "play": "pond" },
+        { "at": 15, "ramp": "pan.pan", "to": -0.5, "over": 10 },
+        { "at": 25, "ramp": "pan.pan", "to": 0.5, "over": 15 },
+        { "at": 40, "ramp": "pan.pan", "to": 0, "over": 10 },
+        { "at": 52, "ramp": "pitch.mix", "to": 0, "over": 6 },
+        { "at": 52, "ramp": "lowpass.frequency", "to": 5000, "over": 6 },
+        { "at": 60, "play": "bell1" },
+        { "at": 82, "ramp": "lowpass.frequency", "to": 600, "over": 15 },
+        { "at": 82, "ramp": "pitch.mix", "to": 0.6, "over": 15 },
+        { "at": 85, "play": "pond" },
+        { "at": 100, "ramp": "volume", "to": 0, "over": 23 },
+        { "at": 124, "stop": "pad" }
       ]
     }
   }
