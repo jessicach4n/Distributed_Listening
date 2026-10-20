@@ -3,17 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <script type="module" src="../../DO_NOT_TOUCH/js/form.js"></script>
+    <script type="module" src="../../DO_NOT_TOUCH/js/generateJson.js"></script>
+    <script type="module" src="../../DO_NOT_TOUCH/js/loadJson.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Score Generator</title>
     <link rel="stylesheet" href="jsonform.css">
 </head>
 <body>
     <h1>JSON Form</h1>
-    <form>
+
+    <!-- REUPLOAD JSON FILE / EDIT PROJECT -->
+    <section id="loadJsonSection">
+        <label for="jsonFile">Load an existing project</label>
+        <p class="description">Upload a previously generated JSON file to edit your project</p>
+        <input type="file" id="jsonFile" accept=".json,application/json">
+        <p id="loadJsonStatus" role="status"></p>
+    </section>
+
+    <!-- JSON FORM -->
+    <form id="jsonForm">
         <!-- Project Name -->
         <label>Name</label>
         <p class="description">What is the title of your project</p>
-        <input type="text" placeholder="My project name">
+        <input type="text" id="projectName" placeholder="My project name" required>
 
         <br><br>
         
@@ -48,7 +60,7 @@
         <br>
         <select id="groupSelection">
             <option value="0" selected="selected" disabled hidden>Choose here</option>
-            <option value="1" >1</option>
+            <option value="1">1</option>
             <option value="2">2</option>
             <option value="3">3</option>
             <option value="4">4</option>
@@ -62,7 +74,7 @@
 
         </section>
 
-       <button> Generate JSON File</button>
+       <button type="submit" id="generateJson"> Generate JSON File</button>
 
 
 
