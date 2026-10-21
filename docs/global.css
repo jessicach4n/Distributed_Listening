@@ -1,0 +1,34 @@
+@import url("fonts/fonts.css");
+
+:root {
+  --blue-color: #43BAFF;
+  --blue-border: 3px solid var(--blue-color);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Helvetica Neue LT Std", sans-serif;
+  font-weight: 300;
+  font-stretch: expanded;
+  color: #000000;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-size: 50px;
+  margin-bottom: 0.5em;
+}
+
+h2 {
+  font-size: 40px;
+  margin-bottom: 1em;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}

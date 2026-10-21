@@ -6,20 +6,25 @@
     <!-- Tone.js (global `Tone`), loaded before client.js so it's available there -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.1.22/Tone.js"></script>
     <script type="module" src="DO_NOT_TOUCH/js/client.js"></script>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="index.css">
     <title>Distributed Listening</title>
 </head>
-<body>
-    <h1>Hello world :D</h1>
-    <div>
-        <p>For testing the page navigation:</p>
-        <nav>
-            <a href="./pages/conductor/conductor.html">Conductor Page</a>
-            <a href="./pages/jsonform/jsonform.html">Form Page</a>
-            <a href="./pages/player/player.html">Player Page</a>
-        </nav>
+<body class="landing">
+    <nav class="nav-container">
+        <a href="guide.html"><span>Guide</span></a>
+    </nav>
+    <header class="header">
+        <h1>Welcome to the Distributed Listening Website</h1>
+        <h2>Please choose an option</h2>
+    </header>
+    <div class="content">
+        <a href="./pages/conductor/conductor.html">Conductor Page</a>
+        <a href="./pages/jsonform/jsonform.html">Form Page</a>
     </div>
+
+    <!-- TODO: Delete these later, for testing only -->
+    <a href="./pages/player/player.html">Player Page</a>
     <button id="start-btn">Interact with me FIRST</button>
     <div id="controls">
         <button id="play-btn">Play</button>
