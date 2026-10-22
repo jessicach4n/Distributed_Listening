@@ -24,9 +24,10 @@ function createEffect(effect, players) {
                 const { rate = 0.2, min = 200, max = 2000 } = effect.lfo;
                 const lfo = new Tone.LFO(rate, min, max).connect(node.frequency).start();
                 params.rate = { param: lfo.frequency, initial: rate };
-            } else {
-                params.frequency = { param: node.frequency, initial: frequency };
+                // `extras` are nodes outside the chain, disposed along with it.
+                return { node, params, extras: [lfo] };
             }
+            params.frequency = { param: node.frequency, initial: frequency };
             return { node, params };
         }
 
@@ -103,18 +104,20 @@ export class AudioPlayer {
         this.clockOffset = 0; // serverTime - localTime, in ms
         this.startAt = null;
         this.part = null;
+        this.loading = 0; // counts initialize() calls, so a stale one can tell it's been replaced
     }
 
-    async initialize(score, group, startAt = null) {
+    // Builds `group`'s part of `score`, replacing any part already built (the
+    // conductor loaded a different piece, or this phone moved group). Sound
+    // paths in the score are looked up relative to `soundsUrl`, the piece's folder.
+    // `startAt` is non-null if the piece is already playing.
+    async initialize(score, group, startAt = null, soundsUrl = document.baseURI) {
         if (!score?.groups?.[group]) {
             throw new Error(`Score does not contain group "${group}".`);
         }
-        if (startAt !== null && startAt !== undefined) {
-            this.startAt = startAt;
-        }
-        if (this.part) {
-            return;
-        }
+        const loading = ++this.loading;
+        this.dispose();
+        this.startAt = startAt ?? null;
 
         const groupPart = score.groups[group];
         const volume = new Tone.Gain(1).toDestination();
@@ -126,11 +129,13 @@ export class AudioPlayer {
         const players = {}; // filled in below; created first so "drift" can reach them
         let rateTarget = null; // the "drift.rate" param, if this group drifts
         const effectNodes = [];
+        const extras = [];  // nodes outside the chain (LFOs)
         const pending = []; // effects still getting ready (reverb)
         for (const effect of groupPart.effects ?? []) {
             const created = createEffect(effect, players);
             if (!created) continue;
             if (created.node) effectNodes.push(created.node);
+            if (created.extras) extras.push(...created.extras);
             if (created.ready) pending.push(created.ready);
             const id = effect.id ?? effect.type;
             for (const [name, target] of Object.entries(created.params)) {
@@ -141,7 +146,7 @@ export class AudioPlayer {
         Tone.connectSeries(...effectNodes, volume);
         const input = effectNodes[0] ?? volume;
 
-        // One player per sound this group actually uses; paths are relative to the page.
+        // One player per sound this group actually uses.
         const events = [];
         for (let event of groupPart.events ?? []) {
             // The form writes the volume target as "gain".
@@ -157,7 +162,7 @@ export class AudioPlayer {
                     continue;
                 }
                 players[sound] ??= new Tone.Player(
-                    new URL(soundPath, document.baseURI).href,
+                    new URL(soundPath, soundsUrl).href,
                 ).connect(input);
                 if (rateTarget) players[sound].playbackRate = params[rateTarget].initial;
                 // "loop": true loops the whole file; "loop": [start, end] loops that
@@ -178,12 +183,34 @@ export class AudioPlayer {
         // Sort by time (stable, so same-time events keep the order the artist wrote).
         events.sort((a, b) => a.at - b.at);
 
-        await Tone.loaded(); // wait for every audio file to finish loading
-        await Promise.all(pending);
-        this.part = { players, params, events, rateTarget, nodes: [...effectNodes, volume] };
+        const part = {
+            players, params, events, rateTarget,
+            nodes: [...Object.values(players), ...extras, ...effectNodes, volume],
+        };
+        try {
+            await Tone.loaded(); // wait for every audio file to finish loading
+            await Promise.all(pending);
+        } catch (error) {
+            for (const node of part.nodes) node.dispose();
+            throw error;
+        }
+        if (loading !== this.loading) {
+            // Another piece arrived while this one was loading; it wins.
+            for (const node of part.nodes) node.dispose();
+            return;
+        }
+        this.part = part;
         if (this.startAt !== null) {
             this.startTimeline();
         }
+    }
+
+    // Stops and frees the current part, if any.
+    dispose() {
+        if (!this.part) return;
+        this.stopTimeline();
+        for (const node of this.part.nodes) node.dispose();
+        this.part = null;
     }
 
     async resume() {
