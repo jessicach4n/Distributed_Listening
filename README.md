@@ -8,17 +8,17 @@ Distributed Listening with Mobile Phones Project for CART 470
    ```bash
    cd server
    ```
-5. Run these commands to use the minimum Node version required specified in .nvmrc
+4. Run these commands to use the minimum Node version required specified in .nvmrc
    ```bash
    nvm install
    nvm use
    ```
-6. Install the required dependencies by running:
+5. Install the required dependencies by running:
    ```bash
    npm install
    ```
-7. Start the server by running:
+6. Start the server by running:
    ```bash
    node index.js
    ```
-8. Open the `client/index.html` file in a web browser to connect to the WebSocket server and receive audio channel information.
+7. Open the `client/index.html` file in a web browser to connect to the WebSocket server and receive audio channel information.
