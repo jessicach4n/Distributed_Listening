@@ -1,4 +1,5 @@
-const AUDIO_FOLDER_PATH = '../../audio-files/';
+// Sound files sit next to score.json in the piece's folder (docs/performances/<n>/),
+// so the score just names the file, e.g. "pad.wav".
 const TARGET_ALIASES = {volume: 'gain'};
 
 function setPath(obj, path, value) {
@@ -25,7 +26,7 @@ const name = row.querySelector('.audioNameInput').value.trim();
         if (!name || !file) {
             return;
         }
-        sounds[name] = file.includes('/') ? file : AUDIO_FOLDER_PATH + file;
+        sounds[name] = file;
     });
     return sounds;
 }
@@ -105,9 +106,9 @@ function downloadJson(data) {
 const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
 const url = URL.createObjectURL(blob);
 const link = document.createElement('a');
-const slug = (data.title || 'project').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     link.href = url;
-    link.download = (slug || 'project') + '.json';
+    // The name the server looks for in each piece's folder.
+    link.download = 'score.json';
     link.click();
     URL.revokeObjectURL(url);
 }

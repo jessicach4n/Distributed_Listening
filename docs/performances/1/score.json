@@ -1,16 +1,16 @@
 {
   "title": "Distributed Listening",
   "sounds": {
-    "pad": "audio-files/pad.wav",
-    "birds": "audio-files/ReverbBirds.wav",
-    "bell1": "audio-files/Bell1.wav",
-    "bell2": "audio-files/Bell2.wav",
-    "bell3": "audio-files/Bell3.wav",
-    "charango1": "audio-files/Charango1.wav",
-    "charango2": "audio-files/Charango2.wav",
-    "foley1": "audio-files/foley1.wav",
-    "foley2": "audio-files/foley2.wav",
-    "pond": "audio-files/foleyPond.wav"
+    "pad": "pad.wav",
+    "birds": "ReverbBirds.wav",
+    "bell1": "Bell1.wav",
+    "bell2": "Bell2.wav",
+    "bell3": "Bell3.wav",
+    "charango1": "Charango1.wav",
+    "charango2": "Charango2.wav",
+    "foley1": "foley1.wav",
+    "foley2": "foley2.wav",
+    "pond": "foleyPond.wav"
   },
   "groups": {
     "0": {
