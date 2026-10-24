@@ -1,3 +1,5 @@
+export const AUDIO_FOLDER_PATH = 'audio/';
+
 // ========EFFECT =========
 const EFFECTS = {
     filter: {
@@ -182,28 +184,15 @@ document.getElementById("addAudio").addEventListener('click', function(){
     var newRow= document.createElement('div');
     newRow.className='row';
 
-    //=======AUDIO FILE
-    var divAudioFile= document.createElement('div');
-    divAudioFile.className='column';
-
+    // //=======AUDIO FILE
+    var divAudioFile = document.createElement('div');
+    divAudioFile.className = 'column';
     var labelAudioFile = document.createElement('label');
-    labelAudioFile.textContent = "Audio file name";
-
-    var inputAudioFile= document.createElement('input');
-    inputAudioFile.type="text";
-    inputAudioFile.placeholder="Enter audio file name";
-
-    //=======AUDIO NAME
-    var divAudioName= document.createElement('div');
-    divAudioName.className='column';
-
-    var labelAudioName = document.createElement('label');
-    labelAudioName.textContent = "Audio Name";
-
-    var inputAudioName= document.createElement('input');
-    inputAudioName.type="text";
-    inputAudioName.className="audioNameInput";   // <-- NEW: the sound dropdowns read this class
-    inputAudioName.placeholder="Enter audio name";
+    labelAudioFile.textContent = 'Upload Audio File';
+    var inputAudioFile = document.createElement('input');
+    inputAudioFile.type = 'file';
+    inputAudioFile.className = 'audioFileInput';
+    inputAudioFile.accept = 'audio/*';
 
     //====DELETE AUDIO BUTTON
     var deletAudioButton =document.createElement('button');
@@ -214,17 +203,13 @@ document.getElementById("addAudio").addEventListener('click', function(){
     divAudioFile.appendChild(labelAudioFile);
     divAudioFile.appendChild(inputAudioFile);
 
-    divAudioName.appendChild(labelAudioName);
-    divAudioName.appendChild(inputAudioName);
-
     newRow.appendChild(divAudioFile);
-    newRow.appendChild(divAudioName);
     newRow.appendChild(deletAudioButton);
 
     document.getElementById('audio_section').appendChild(newRow);
 });
 
-//=====DELETE AUDIO =======
+//===== DELETE AUDIO =======
 // ONE listener on the whole audio section: it catches clicks from the
 // buttons that exist now AND the ones created later
 document.getElementById('audio_section').addEventListener('click', function(event){
@@ -234,19 +219,48 @@ document.getElementById('audio_section').addEventListener('click', function(even
     }
 });
 
-//=====TYPING AN AUDIO NAME =======
-document.getElementById('audio_section').addEventListener('input', function(){
+//===== CHOOSING AN AUDIO FILE =======
+document.getElementById('audio_section').addEventListener('input', function(event) {
+    var t = event.target;
+    if (t.type==='file' && t.files.length) {
+        var row = t.closest('.row');
+        delete row.dataset.soundName;
+        delete row.dataset.soundPath;
+        var note = row.querySelector('.audioLoadedNote');
+        if (note) note.remove();
+    }
     refreshSoundDropdowns();
-});
+})
 
 
 //====== SOUND dropdowns: filled from the audio names the user typed =====
+export function getAudioEntries() {
+    var entries = [];
+    document.querySelectorAll('#audio_section .row').forEach(function(row) {
+        var input = row.querySelector('input[type="file"]');
+        var file = input && input.files[0];
+        if (file) {
+            entries.push({
+                name: row.dataset.soundName || file.name.replace(/\.[^.]+$/, ''),
+                path: AUDIO_FOLDER_PATH + file.name,
+                file: file
+            });
+        } else if (row.dataset.soundName) {
+            entries.push({
+                name: row.dataset.soundName,
+                path: row.dataset.soundPath,
+                file: null
+            });
+        }
+    });
+    return entries;
+}
+
 function getSoundNames(){
     var names = [];
-    document.querySelectorAll('.audioNameInput').forEach(function(input){
-        var name = input.value.trim();
-        if (name !== "" && names.indexOf(name) === -1) {
-            names.push(name);
+    getAudioEntries().forEach(function(e) {
+        if (names.indexOf(e.name) === -1) {
+            names.push(e.name);
         }
     });
     return names;

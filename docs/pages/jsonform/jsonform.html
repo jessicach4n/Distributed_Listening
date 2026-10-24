@@ -5,6 +5,7 @@
     <script type="module" src="../../DO_NOT_TOUCH/js/form.js"></script>
     <script type="module" src="../../DO_NOT_TOUCH/js/generateJson.js"></script>
     <script type="module" src="../../DO_NOT_TOUCH/js/loadJson.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../global.css">
     <link rel="stylesheet" href="jsonform.css">
@@ -16,8 +17,8 @@
     <!-- REUPLOAD JSON FILE / EDIT PROJECT -->
     <section id="loadJsonSection">
         <label for="jsonFile">Load an existing project</label>
-        <p class="description">Upload a previously generated JSON file to edit your project</p>
-        <input type="file" id="jsonFile" accept=".json,application/json">
+        <p class="description">Upload a previously generated project (.ZIP) to make edits</p>
+        <input type="file" id="jsonFile" accept=".zip,.json,application/json,application/zip">
         <p id="loadJsonStatus" role="status"></p>
     </section>
 
@@ -37,14 +38,9 @@
         <section id="audio_section">
             <div id="row" class="row" >
                 <div id="column">
-                    <label>Audio file name</label>
-                    <input type="text" placeholder="Enter audio file name">
+                    <label>Upload Audio file</label>
+                    <input type="file" class="audioFileInput" accept="audio/*">
                 </div>
-                <div id="column">
-                    <label>Audio name</label>
-                    <input type="text" class="audioNameInput" placeholder="Enter audio name">
-                    <!-- <input type="text" placeholder="Enter audio name"> -->
-                </div>   
                 <button id="removeAudio" class="removeAudio" type="button">- Remove Audio</button>
             </div>
 
