@@ -3,9 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Tone.js (global `Tone`), loaded before client.js so it's available there -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.1.22/Tone.js"></script>
-    <script type="module" src="DO_NOT_TOUCH/js/client.js"></script>
     <link rel="stylesheet" href="global.css">
     <link rel="stylesheet" href="index.css">
     <title>Distributed Listening</title>
@@ -23,13 +20,7 @@
         <a href="./pages/jsonform/jsonform.html">Form Page</a>
     </div>
 
-    <!-- TODO: Delete these later, for testing only -->
+    <!-- Phones join here; the phone controls now live on the Player page. -->
     <a href="./pages/player/player.html">Player Page</a>
-    <button id="start-btn">Interact with me FIRST</button>
-    <div id="controls">
-        <button id="play-btn">Play</button>
-        <button id="stop-btn">Stop</button>
-    </div>
-    <div id="group-id"></div>
 </body>
 </html>

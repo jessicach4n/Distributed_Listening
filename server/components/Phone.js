@@ -4,10 +4,11 @@ const WebSocket = require("ws");
 let nextId = 0;
 
 class Phone {
-  constructor(socket, numGroups) {
+  constructor(socket) {
     this.socket = socket;
     this.id = nextId++;
-    this.assignedGroup = this.id % numGroups;
+    // Which of the loaded piece's groups this phone plays; null until a piece is loaded.
+    this.assignedGroup = null;
     this.isActive = false;
   }
 
