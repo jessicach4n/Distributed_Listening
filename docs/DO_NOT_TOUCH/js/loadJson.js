@@ -9,29 +9,28 @@ function getPath(obj, path) {
     }, obj);
 }
 
-function populateSounds(sounds) {
+function populateSounds(sounds, audioFiles={}) {
     const section = document.getElementById('audio_section');
-    const rows = [...section.querySelectorAll('.row')];
-    rows.slice(1).forEach(row => row.remove());
+    section.textcontent = '';
 
-    const firstRow = rows[0];
-    if (!firstRow) {
-        throw new Error('The audio section doesn\'t have an initial row');
-    }
-
-    const entries = Object.entries(sounds || {});
-    firstRow.querySelectorAll('input').forEach(input => input.value = '');
-    for (let i=1; i < entries.length; i++) {
+    Object.entries(sounds || {}).forEach(([name, path]) => {
         document.getElementById('addAudio').click();
-    }
+        const rows = section.querySelectorAll('.row');
+        const row = rows[rows.length - 1];
+        row.dataset.soundName = name;
 
-    const allRows = [...section.querySelectorAll('.row')];
-
-    entries.forEach(([name, path], index) => {
-    const row = allRows[index];
-    const inputs = row.querySelectorAll('input[type="text"]');
-        inputs[0].value = path;
-        row.querySelector('.audioNameInput').value = name;
+        const file = audioFiles[name];
+        if (file) {
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            row.querySelector('input[type="file"]').files = transfer.files;
+        } else {
+            row.dataset.soundPath = path;
+            const note = document.createElement('p');
+            note.className = 'audioLoadedNote';
+            note.textContent = `${name}: audio file not found (${path}). Choose a file to include it`;
+            row.querySelector('.column').appendChild(note);
+        }
     });
 
     refreshSoundDropdowns();
@@ -193,16 +192,42 @@ function populateGroups(groups) {
     });
 }
 
+async function loadProject(file) {
+    if (!file.name.toLowerCase().endsWith('.zip')) {
+        return {
+            data: JSON.parse(await file.text()), audioFiles: {}
+        };
+    }
+
+    const zip = await JSZip.loadAsync(file);
+    const jsonEntry = Object.values(zip.files).find(f =>
+        !f.dir && f.name.toLowerCase().endsWith('.json')
+    );
+    if (!jsonEntry) {
+        throw new Error('Could not find .json file in the ZIP');
+    }
+
+    const data = JSON.parse(await jsonEntry.async('string'));
+    const base = jsonEntry.name.slice(0, jsonEntry.name.lastIndexOf('/') + 1);
+    const audioFiles = {};
+    for (const [name, path] of Object.entries(data.sounds || {})) {
+        const entry = zip.file(base + path);
+        if (!entry) continue;
+        const blob = await entry.async('blob');
+        audioFiles[name] = new File([blob], path.split('/').pop());
+    }
+    return {data, audioFiles};
+}
+
 async function loadJsonFile(file) {
-    const text = await file.text();
-    const data = JSON.parse(text);
+    const {data, audioFiles} = await loadProject(file);
 
     if (!data || typeof data !== 'object' || Array.isArray(data)) {
         throw new Error('File must be a JSON project');
     }
 
     document.getElementById('projectName').value = data.title || '';
-    populateSounds(data.sounds);
+    populateSounds(data.sounds, audioFiles);
     populateGroups(data.groups);
     refreshSoundDropdowns();
     document.getElementById('loadJsonStatus').textContent = 'Project loaded !!';
