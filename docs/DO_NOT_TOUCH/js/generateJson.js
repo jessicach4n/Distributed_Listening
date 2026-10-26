@@ -100,7 +100,7 @@ async function downloadProject(data) {
     const zip = new JSZip();
     const folder = zip.folder(projectTitle);
 
-    folder.file(projectTitle + '.json', JSON.stringify(data, null, 2));
+    folder.file('score.json', JSON.stringify(data, null, 2));
     getAudioEntries().forEach(function(e) {
         if (e.file) {
             folder.file(e.path, e.file);
