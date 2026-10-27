@@ -14,22 +14,31 @@
         <p id="connection">Connecting to the server…</p>
     </div>
 
-    <div id="conductor-content">
-        <h1>Conductor</h1>
+    <div id="conductor-content" class="conductor-content">
+        <h1>Distributed Listening Conductor View</h1>
         <section>
-            <label for="piece-select">Piece (folder in performances)</label>
-            <div>
-                <select id="piece-select" disabled>
-                    <option>Loading pieces…</option>
-                </select>
-                <button id="refresh-btn" disabled>Refresh</button>
-                <button id="load-btn" disabled>Load</button>
+            <div class="section-header">
+                <h2>Team distribution</h2>
+                <h3 id="phone-info">0 phones joined the room.</h3>
+            </div>
+        </section>
+        <section class="pieces-content">
+            <button id="refresh-btn" disabled>Refresh</button>
+            <div class="pieces-carousel">
+                <button id="pieces-previous" class="piece-scroll-button" type="button" aria-label="Scroll to previous pieces" hidden>
+                    <img src="../icons/arrow-right.svg" alt="">
+                </button>
+                <div id="pieces-list" class="pieces-list" aria-live="polite">
+                    <p>Loading pieces…</p>
+                </div>
+                <button id="pieces-next" class="piece-scroll-button" type="button" aria-label="Scroll to next pieces" hidden>
+                    <img src="../icons/arrow-right.svg" alt="">
+                </button>
             </div>
             <p id="error"></p>
         </section>
         <section>
             <p id="piece-info">No piece loaded.</p>
-            <p id="phone-info">0 phones joined.</p>
             <ul id="group-list"></ul>
             <div>
                 <button id="play-btn" disabled>Play</button>
