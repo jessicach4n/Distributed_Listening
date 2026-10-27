@@ -213,6 +213,12 @@ export class AudioPlayer {
         this.part = null;
     }
 
+    reset() {
+        this.loading++;
+        this.startAt = null;
+        this.dispose();
+    }
+
     async resume() {
         await Tone.start();
     }
