@@ -1,7 +1,7 @@
 // The conductor page: choose which piece (folder in docs/performances) every
 // phone plays, then start and stop it for everyone.
-import { Socket } from "./network/Socket.js";
-import { WS_URL } from "../config/url.js";
+import { Socket } from "../network/Socket.js";
+import { WS_URL } from "../../config/url.js";
 
 const connection = document.getElementById("connection");
 const loadingScreen = document.getElementById("loading-screen");
@@ -13,8 +13,8 @@ const errorText = document.getElementById("error");
 const pieceInfo = document.getElementById("piece-info");
 const phoneInfo = document.getElementById("phone-info");
 const playerQrCode = document.getElementById("player-qr-code");
-const playerPageLink = document.getElementById("player-page-link");
 const groupList = document.getElementById("group-list");
+const deselectBtn = document.getElementById("deselect-btn");
 const playBtn = document.getElementById("play-btn");
 const stopBtn = document.getElementById("stop-btn");
 
@@ -105,6 +105,7 @@ function showStatus() {
       groupList.append(item);
     });
   }
+  deselectBtn.disabled = !piece;
   playBtn.disabled = !piece;
   stopBtn.disabled = !piece || !playing;
   updateSelectedPiece();
@@ -130,7 +131,7 @@ const socket = new Socket(WS_URL, {
     loadingScreen.classList.remove("is-connecting", "is-hidden");
     refreshBtn.disabled = true;
     for (const loadButton of piecesList.querySelectorAll("button")) loadButton.disabled = true;
-    for (const control of [playBtn, stopBtn]) control.disabled = true;
+    for (const control of [deselectBtn, playBtn, stopBtn]) control.disabled = true;
   },
 
   onMessage(message) {
@@ -168,3 +169,4 @@ refreshBtn.addEventListener("click", () => {
 
 playBtn.addEventListener("click", () => socket.send({ type: "play" }));
 stopBtn.addEventListener("click", () => socket.send({ type: "stop" }));
+deselectBtn.addEventListener("click", () => socket.send({ type: "deselect-piece" }));
