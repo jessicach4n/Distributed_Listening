@@ -4,7 +4,6 @@
   flex-direction: column;
   justify-content: center;
   text-align: center;
-  height: 100vh;
   overflow: hidden;
 }
 
@@ -12,7 +11,7 @@
   position: fixed;
   top: 0;
   right: 0;
-  margin: 20px;
+  margin:12px;
 }
 
 .nav-container a {
@@ -24,7 +23,7 @@
   border: var(--blue-border);
   border-radius: 20px;
   color: var(--blue-color);
-  font-size: 32px;
+  font-size: 24px;
 }
 
 .nav-container a span {
@@ -36,13 +35,12 @@
 }
 
 .header {
+  margin-top: 3dvh;
   text-align: center;
 }
 
 .content {
   display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 100px;
   text-align: center;
 }

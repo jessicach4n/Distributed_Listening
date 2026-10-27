@@ -82,11 +82,12 @@ function assignGroup(phone) {
 // already running) startAt so it can join at the current position.
 function sendPiece(phone) {
   if (!piece) {
-    phone.send({ type: "waiting" });
+    phone.send({ type: "waiting", deviceId: phone.id });
     return;
   }
   phone.send({
     type: "piece",
+    deviceId: phone.id,
     piece: { id: piece.id, title: piece.title },
     group: Object.keys(piece.score.groups)[phone.assignedGroup],
     groupNumber: phone.assignedGroup + 1,
@@ -176,6 +177,16 @@ wss.on("connection", (socket) => {
         case "stop":
             if (!isConductor) break;
             stopAll();
+            broadcastStatus();
+        break;
+        case "deselect-piece":
+            if (!isConductor) break;
+            stopAll();
+            piece = null;
+            for (const p of phones) {
+              p.assignedGroup = null;
+              p.send({ type: "waiting", deviceId: p.id });
+            }
             broadcastStatus();
         break;
 

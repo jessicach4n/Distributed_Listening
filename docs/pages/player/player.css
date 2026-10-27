@@ -1,0 +1,137 @@
+.player {
+    display: grid;
+    min-height: 100vh;
+    min-height: 100svh;
+    margin: 0;
+    padding: 2rem;
+    place-items: center;
+}
+
+.player > section[hidden],
+.player [hidden] {
+    display: none;
+}
+
+.player > section {
+    width: 100%;
+    text-align: center;
+}
+
+.player-landing h1 {
+    margin-top: 0;
+}
+
+.player button {
+    min-height: 3rem;
+    padding: 0.75rem 1.5rem;
+    border: 1px solid #000000;
+    border-radius: 0.35rem;
+    background: #ffffff;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.player button:disabled {
+    cursor: wait;
+}
+
+#start-btn {
+    width: 279px;
+    height: 50px;
+    border: 0;
+    border-radius: 20px;
+    background: #D9D9D9;
+    box-shadow: -8px -8px 15px 0 rgba(0, 0, 0, 0.20) inset;
+    font-weight: 600;
+}
+
+.player-landing #connection-status {
+    min-height: 1.5em;
+}
+
+.player-waiting-group > p:first-child {
+    margin-bottom: 0.5rem;
+}
+
+.player-waiting-group #group-id {
+    margin-top: 0;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.player-waiting-success {
+    font-size: 1.5rem;
+    text-align: center;
+}
+
+.player-waiting-success p:last-child {
+    font-size: 2.5rem;
+    font-weight: 600;
+}
+
+.player-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    text-align: initial;
+}
+
+#canvas-container {
+    width: 100%;
+    height: 100%;
+}
+
+.player-menu {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+.player button.info-btn {
+    display: grid;
+    width: 3.5rem;
+    height: 3.5rem;
+    padding: 0.25rem;
+    place-items: center;
+    border: 0;
+    background: transparent;
+}
+
+.info-btn img {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.info-menu {
+    display: flex;
+    min-width: 12rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 1px solid #cccccc;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    box-shadow: 0 0.25rem 1rem #0000001a;
+}
+
+.info-menu p {
+    margin: 0 0 0.5rem;
+}
+
+#help-dialog {
+    max-width: min(28rem, calc(100vw - 2rem));
+    border: 1px solid #cccccc;
+    border-radius: 0.75rem;
+}
+
+#help-dialog::backdrop {
+    background: #00000066;
+}
