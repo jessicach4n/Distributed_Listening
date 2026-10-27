@@ -23,10 +23,10 @@ let status = null; // last "status" from the server
 
 function updatePieceScrollControls() {
   const canScroll = piecesList.scrollWidth > piecesList.clientWidth + 1;
-  previousPiecesBtn.hidden = !canScroll;
-  nextPiecesBtn.hidden = !canScroll;
   previousPiecesBtn.disabled = piecesList.scrollLeft <= 0;
   nextPiecesBtn.disabled = piecesList.scrollLeft + piecesList.clientWidth >= piecesList.scrollWidth - 1;
+  previousPiecesBtn.hidden = !canScroll || previousPiecesBtn.disabled;
+  nextPiecesBtn.hidden = !canScroll || nextPiecesBtn.disabled;
 }
 
 function showPieces(pieces) {
