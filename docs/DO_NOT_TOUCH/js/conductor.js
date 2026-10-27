@@ -12,6 +12,8 @@ const refreshBtn = document.getElementById("refresh-btn");
 const errorText = document.getElementById("error");
 const pieceInfo = document.getElementById("piece-info");
 const phoneInfo = document.getElementById("phone-info");
+const playerQrCode = document.getElementById("player-qr-code");
+const playerPageLink = document.getElementById("player-page-link");
 const groupList = document.getElementById("group-list");
 const playBtn = document.getElementById("play-btn");
 const stopBtn = document.getElementById("stop-btn");
@@ -20,6 +22,19 @@ const loadingStartedAt = Date.now();
 const minimumLoadingDuration = 2500;
 let loadingTimer;
 let status = null; // last "status" from the server
+
+const playerPageUrl = new URL("../player/player.html", window.location.href).href;
+if (window.QRCode) {
+  new window.QRCode(playerQrCode, {
+    text: playerPageUrl,
+    width: 128,
+    height: 128,
+    correctLevel: window.QRCode.CorrectLevel.M,
+  });
+} else {
+  console.error("Could not load QR code generator.");
+  playerQrCode.textContent = "QR code unavailable. Use the player page link below.";
+}
 
 function updatePieceScrollControls() {
   const canScroll = piecesList.scrollWidth > piecesList.clientWidth + 1;

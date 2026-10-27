@@ -1,3 +1,4 @@
+/* ----- CONDUCTOR LAYOUT ----- */
 .conductor-content h1 {
     text-align: center;
     width: 100%;
@@ -10,6 +11,40 @@
     justify-content: space-between;
 }
 
+/* ----- PLAYER QR CODE ----- */
+.player-qr {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin-top: 1.5rem;
+    background-color: white;
+    width: fit-content;
+    padding: 2rem;
+    margin: 1rem;
+    border: 1px solid black;
+    border-radius: 0.8rem;
+    text-align: center;
+}
+
+.player-qr h3,
+.player-qr p {
+    margin: 0.75rem 0 0;
+}
+
+#player-qr-code {
+    display: inline-flex;
+    padding: 0.5rem;
+    background: #ffffff;
+}
+
+#player-qr-code img,
+#player-qr-code canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+/* ----- PIECE CAROUSEL ----- */
 .pieces-carousel {
     display: flex;
     align-items: center;
@@ -69,7 +104,7 @@
     min-width: 0;
     padding: 1rem;
     border: 1px solid #cccccc;
-    border-radius: 0.5rem;
+    border-radius: 0.8rem;
     scroll-snap-align: start;
     width: 294px;
     height: 471px;
