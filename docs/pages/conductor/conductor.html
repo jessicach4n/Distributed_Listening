@@ -9,29 +9,33 @@
     <title>Conductor</title>
 </head>
 <body>
-    <h1>Conductor</h1>
-    <p id="connection">Connecting…</p>
+    <div id="loading-screen" class="is-connecting" role="status" aria-live="polite">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <p id="connection">Connecting to the server…</p>
+    </div>
 
-    <section>
-        <label for="piece-select">Piece (folder in performances)</label>
-        <div>
-            <select id="piece-select" disabled>
-                <option>Loading pieces…</option>
-            </select>
-            <button id="refresh-btn" disabled>Refresh</button>
-            <button id="load-btn" disabled>Load</button>
-        </div>
-        <p id="error"></p>
-    </section>
-
-    <section>
-        <p id="piece-info">No piece loaded.</p>
-        <p id="phone-info">0 phones joined.</p>
-        <ul id="group-list"></ul>
-        <div>
-            <button id="play-btn" disabled>Play</button>
-            <button id="stop-btn" disabled>Stop</button>
-        </div>
-    </section>
+    <div id="conductor-content">
+        <h1>Conductor</h1>
+        <section>
+            <label for="piece-select">Piece (folder in performances)</label>
+            <div>
+                <select id="piece-select" disabled>
+                    <option>Loading pieces…</option>
+                </select>
+                <button id="refresh-btn" disabled>Refresh</button>
+                <button id="load-btn" disabled>Load</button>
+            </div>
+            <p id="error"></p>
+        </section>
+        <section>
+            <p id="piece-info">No piece loaded.</p>
+            <p id="phone-info">0 phones joined.</p>
+            <ul id="group-list"></ul>
+            <div>
+                <button id="play-btn" disabled>Play</button>
+                <button id="stop-btn" disabled>Stop</button>
+            </div>
+        </section>
+    </div>
 </body>
 </html>

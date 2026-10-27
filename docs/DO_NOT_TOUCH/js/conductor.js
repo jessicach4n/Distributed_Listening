@@ -4,6 +4,7 @@ import { Socket } from "./network/Socket.js";
 import { WS_URL } from "../config/url.js";
 
 const connection = document.getElementById("connection");
+const loadingScreen = document.getElementById("loading-screen");
 const pieceSelect = document.getElementById("piece-select");
 const refreshBtn = document.getElementById("refresh-btn");
 const loadBtn = document.getElementById("load-btn");
@@ -14,6 +15,9 @@ const groupList = document.getElementById("group-list");
 const playBtn = document.getElementById("play-btn");
 const stopBtn = document.getElementById("stop-btn");
 
+const loadingStartedAt = Date.now();
+const minimumLoadingDuration = 2500;
+let loadingTimer;
 let status = null; // last "status" from the server
 
 function showPieces(pieces) {
@@ -60,12 +64,22 @@ function showStatus() {
 
 const socket = new Socket(WS_URL, {
   onOpen() {
-    connection.textContent = "Connected to the server.";
+    const remainingLoadingTime = minimumLoadingDuration - (Date.now() - loadingStartedAt);
+    if (remainingLoadingTime > 0) {
+      loadingTimer = window.setTimeout(
+        () => loadingScreen.classList.add("is-hidden"),
+        remainingLoadingTime,
+      );
+    } else {
+      loadingScreen.classList.add("is-hidden");
+    }
     socket.send({ type: "conductor" });
   },
 
   onClose() {
+    window.clearTimeout(loadingTimer);
     connection.textContent = "Lost connection to the server. Reload the page to reconnect.";
+    loadingScreen.classList.remove("is-connecting", "is-hidden");
     for (const control of [pieceSelect, refreshBtn, loadBtn, playBtn, stopBtn]) control.disabled = true;
   },
 
