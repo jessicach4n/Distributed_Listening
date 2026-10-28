@@ -146,6 +146,7 @@ helpBtn.addEventListener("click", () => {
 quitBtn.addEventListener("click", () => {
   window.clearTimeout(groupScreenTimer);
   window.clearTimeout(deviceIdTimer);
+  audioPlayer.stop();
   socket.close();
   window.location.assign("../../index.html");
 });
