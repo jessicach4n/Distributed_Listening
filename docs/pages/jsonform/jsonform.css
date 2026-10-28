@@ -1,3 +1,7 @@
+body{
+  margin:30px
+}
+
 h4 {
   margin: 0px;
 }
@@ -26,6 +30,14 @@ h4 {
   flex-direction: column;
 }
 
+.effectSection{
+  margin-bottom: 24px;
+}
+
+.eventSection{
+  margin-bottom: 24px;
+}
+
 #groupSelection {
   display: flex;
   flex-direction: column;
@@ -33,15 +45,41 @@ h4 {
 }
 
 .groupCard {
-  background-color: antiquewhite;
-  padding: 18px;
-  margin: 12px;
+  border-color: black;
+  border-style: solid;
+  border-radius: 60px;
+  padding: 20px;
+  height: auto;
+  margin: 20px;
 }
 
 button {
-  background-color: aliceblue;
-  height: 20px;
+
+  background-color: #D9D9D9;
+  border-color: #ABABAB;
+  border-style: solid;
+  border-radius: 30px;
+  /* height: 20px; */
+  padding: 8px 12px;
+  text-align: center;
+  display: inline-block;
+  font-size: 14px;
+  cursor: pointer;
+
 }
+
+.deleteButton {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    line-height: 0;
+    color: #555;            /* the icon's normal color, pick any you like */
+}
+.deleteButton svg { width: 24px; height: 24px; }
+.deleteButton path { fill: #000000; }   /* turns red on hover */
+
+.deleteButton:hover path { fill: #e05252; }   /* turns red on hover */
 
 .select {
   height: 40px;
@@ -67,4 +105,49 @@ button {
 
 [hidden] {
   display: none !important;
+}
+
+label{
+  font-size: 16px;
+}
+
+/* For sliders */
+.sliderWrap { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0.25rem; 
+}
+
+.sliderRow { 
+  display: flex; 
+  align-items: center; 
+  gap: 0.5rem; 
+}
+
+.sliderRow input[type="range"] { 
+  flex: 1; 
+  min-width: 120px; 
+  color: green;
+}
+
+.sliderMin, .sliderMax { 
+  font-size: 0.8em; 
+  opacity: 0.7; 
+  font-variant-numeric: tabular-nums; 
+}
+
+.sliderValue { 
+  text-align: center; 
+  font-weight: 600; 
+  font-variant-numeric: tabular-nums; 
+  font-size: 14px;
+  color: black;
+}
+
+input[type="number"] { 
+  flex: 1; 
+  min-width: 120px; 
+  border-radius: 30px;
+  border-color: #ABABAB;
+  border-style: solid 0.3px;
 }

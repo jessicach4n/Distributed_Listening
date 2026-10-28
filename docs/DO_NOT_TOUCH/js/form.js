@@ -1,65 +1,70 @@
 export const AUDIO_FOLDER_PATH = 'audio/';
 
+// >>> NEW: sliders need a max. "Over (seconds)" had no max before, so pick one that fits your project
+const SLIDER_MAX_TIME_SECONDS = 120;   // max for "Over (seconds)"
+
 // ========EFFECT =========
+// >>> CHANGED: every field and target below now has a `step` (sliders need one)
 const EFFECTS = {
     filter: {
         label: 'Filter',
         fields: [
             { key: 'type', label: 'Select type', kind: 'select', options: ['lowpass', 'highpass', 'bandpass'] },
-            { key: 'frequency', label: 'Frequency (Hz)', min: 20, max: 20000, default: 1000, showWhen: 'nolfo' },
-            { key: 'q', label: 'Q', min: 0.1, max: 20, default: 1 },
+            { key: 'frequency', label: 'Frequency (Hz)', min: 20, max: 20000, step: 1, default: 1000, showWhen: 'nolfo' },
+            { key: 'q', label: 'Q', min: 0.1, max: 20, step: 0.1, default: 1 },
             { key: 'lfoOn', label: 'Use LFO', kind: 'checkbox' },
-            { key: 'lfo.rate', label: 'LFO rate (Hz)', min: 0.01, max: 20, default: 0.2, showWhen: 'lfo' },
-            { key: 'lfo.min', label: 'LFO min (Hz)', min: 20, max: 20000, default: 200, showWhen: 'lfo' },
-            { key: 'lfo.max', label: 'LFO max (Hz)', min: 20, max: 20000, default: 2000, showWhen: 'lfo' },
+            { key: 'lfo.rate', label: 'LFO rate (Hz)', min: 0.01, max: 20, step: 0.01, default: 0.2, showWhen: 'lfo' },
+            { key: 'lfo.min', label: 'LFO min (Hz)', min: 20, max: 20000, step: 1, default: 200, showWhen: 'lfo' },
+            { key: 'lfo.max', label: 'LFO max (Hz)', min: 20, max: 20000, step: 1, default: 2000, showWhen: 'lfo' },
         ],
         targets: [
-            { setting: 'frequency', min: 20, max: 20000, ramp: true, showWhen: 'nolfo' },
-            { setting: 'rate', min: 0.01, max: 20, ramp: true, showWhen: 'lfo' },
-            { setting: 'q', min: 0.1, max: 20, ramp: true },
+            { setting: 'frequency', min: 20, max: 20000, step: 1, ramp: true, showWhen: 'nolfo' },
+            { setting: 'rate', min: 0.01, max: 20, step: 0.01, ramp: true, showWhen: 'lfo' },
+            { setting: 'q', min: 0.1, max: 20, step: 0.1, ramp: true },
         ],
     },
     reverb: {
         label: 'Reverb',
         fields: [
-            { key: 'decay', label: 'Decay (s)', min: 0.1, max: 30, default: 4 },
-            { key: 'preDelay', label: 'Pre-delay (s)', min: 0, max: 1, default: 0.01 },
-            { key: 'mix', label: 'Mix (0-1)', min: 0, max: 1, default: 0.3 },
+            { key: 'decay', label: 'Decay (s)', min: 0.1, max: 30, step: 0.1, default: 4 },
+            { key: 'preDelay', label: 'Pre-delay (s)', min: 0, max: 1, step: 0.01, default: 0.01 },
+            { key: 'mix', label: 'Mix (0-1)', min: 0, max: 1, step: 0.01, default: 0.3 },
         ],
-        targets: [{ setting: 'mix', min: 0, max: 1, ramp: true }],
+        targets: [{ setting: 'mix', min: 0, max: 1, step: 0.01, ramp: true }],
     },
     delay: {
         label: 'Delay / echo',
         fields: [
-            { key: 'time', label: 'Time (s)', min: 0.01, max: 5, default: 0.25 },
-            { key: 'feedback', label: 'Feedback (0-0.95)', min: 0, max: 0.95, default: 0.4 },
-            { key: 'mix', label: 'Mix (0-1)', min: 0, max: 1, default: 0.3 },
+            { key: 'time', label: 'Time (s)', min: 0.01, max: 5, step: 0.01, default: 0.25 },
+            { key: 'feedback', label: 'Feedback (0-0.95)', min: 0, max: 0.95, step: 0.01, default: 0.4 },
+            { key: 'mix', label: 'Mix (0-1)', min: 0, max: 1, step: 0.01, default: 0.3 },
         ],
         targets: [
-            { setting: 'time', min: 0.01, max: 5, ramp: true },
-            { setting: 'feedback', min: 0, max: 0.95, ramp: true },
-            { setting: 'mix', min: 0, max: 1, ramp: true },
+            { setting: 'time', min: 0.01, max: 5, step: 0.01, ramp: true },
+            { setting: 'feedback', min: 0, max: 0.95, step: 0.01, ramp: true },
+            { setting: 'mix', min: 0, max: 1, step: 0.01, ramp: true },
         ],
     },
     pitch: {
         label: 'Pitch',
         fields: [
-            { key: 'semitones', label: 'Semitones', min: -24, max: 24, default: 0 },
-            { key: 'mix', label: 'Mix (0-1)', min: 0, max: 1, default: 1 },
+            { key: 'semitones', label: 'Semitones', min: -24, max: 24, step: 1, default: 0 },
+            { key: 'mix', label: 'Mix (0-1)', min: 0, max: 1, step: 0.01, default: 1 },
         ],
         targets: [
-            { setting: 'semitones', min: -24, max: 24, ramp: false }, // set only!
-            { setting: 'mix', min: 0, max: 1, ramp: true },
+            { setting: 'semitones', min: -24, max: 24, step: 1, ramp: false }, // set only!
+            { setting: 'mix', min: 0, max: 1, step: 0.01, ramp: true },
         ],
     },
     pan: {
         label: 'Pan',
-        fields: [{ key: 'pan', label: 'Pan (-1 left, 1 right)', min: -1, max: 1, default: 0 }],
-        targets: [{ setting: 'pan', min: -1, max: 1, ramp: true }],
+        fields: [{ key: 'pan', label: 'Pan (-1 left, 1 right)', min: -1, max: 1, step: 0.01, default: 0 }],
+        targets: [{ setting: 'pan', min: -1, max: 1, step: 0.01, ramp: true }],
     },
 };
 
 // ========EVENT =========
+// >>> CHANGED: value / to / over now have min, max and step so they can be sliders
 const EVENTS = {
     play: {
         label: 'Play',
@@ -77,19 +82,31 @@ const EVENTS = {
         label: 'Set',
         fields: [
             { key: 'target', label: 'Target', kind: 'target' },
-            { key: 'value', label: 'Value', default: 0, limitedByTarget: true },
+            { key: 'value', label: 'Value', min: 0, max: 1, step: 0.01, default: 0, limitedByTarget: true },
         ],
     },
     ramp: {
         label: 'Ramp',
         fields: [
             { key: 'target', label: 'Target', kind: 'target' },
-            { key: 'to', label: 'Go to', default: 0, limitedByTarget: true },
-            { key: 'over', label: 'Over (seconds)', min: 0.01, default: 1 },
+            { key: 'to', label: 'Go to', min: 0, max: 1, step: 0.01, default: 0, limitedByTarget: true },
+            { key: 'over', label: 'Over (seconds)', min: 0.01, max: SLIDER_MAX_TIME_SECONDS, step: 0.01, default: 1 },
         ],
     },
 };
 
+// >>> NEW: the trash-can icon used by every "Delete" button
+const DELETE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="45" height="44" viewBox="0 0 45 44" fill="none">
+  <path d="M13.125 38.5C12.0938 38.5 11.2109 38.141 10.4766 37.4229C9.74219 36.7049 9.375 35.8417 9.375 34.8333L9.375 11H7.5L7.5 7.33333L16.875 7.33333V5.5L28.125 5.5V7.33333L37.5 7.33333V11H35.625V34.8333C35.625 35.8417 35.2578 36.7049 34.5234 37.4229C33.7891 38.141 32.9062 38.5 31.875 38.5L13.125 38.5ZM16.875 31.1667L20.625 31.1667L20.625 14.6667H16.875L16.875 31.1667ZM24.375 31.1667H28.125L28.125 14.6667H24.375L24.375 31.1667Z" fill="#03010100"/>
+</svg>`;
+
+// >>> NEW: turns a button into an icon-only delete button
+function setDeleteIcon(button){
+    button.classList.add('deleteButton');
+    button.innerHTML = DELETE_ICON_SVG;
+    button.title = "Delete";                 // tooltip on hover
+    button.setAttribute('aria-label', 'Delete');   // screen readers (the text label is gone)
+}
 
 //====== helper: rebuild a dropdown but keep the user's choice if it still exists =====
 // options is a list like [{value: 'pad', label: 'pad'}, ...]
@@ -147,8 +164,8 @@ function createField(f){
         input.className = (f.kind === 'sound') ? "soundSelect" : "targetSelect";
         input.required = true;
 
-    } else {
-        // number
+    } else if (f.kind === 'number') {
+        // >>> NEW: plain number box (the original code), used by "At (seconds)"
         input = document.createElement('input');
         input.type = "number";
         input.step = "any";
@@ -156,15 +173,67 @@ function createField(f){
         if (f.min !== undefined) { input.min = f.min; }
         if (f.max !== undefined) { input.max = f.max; }
         if (f.default !== undefined) { input.value = f.default; }
+
+    } else {
+        // >>> CHANGED: every other number field is a slider (type="range")
+        input = document.createElement('input');
+        input.type = "range";
+        // >>> NEW: min / max / step MUST be set before the value, otherwise the browser
+        // clamps the default to its own 0-100 range
+        input.min = f.min;
+        input.max = f.max;
+        input.step = f.step;
+        if (f.default !== undefined) { input.value = f.default; }
         if (f.limitedByTarget) { input.className = "targetLimited"; }
     }
 
     input.dataset.field = f.key;   // lets the JSON code find this input later
 
     fieldDiv.appendChild(label);
-    fieldDiv.appendChild(input);
+
+    if (input.type === 'range') {
+        // >>> CHANGED: layout is   [min] ----o---- [max]
+        //                              current value
+        var sliderWrap = document.createElement('div');
+        sliderWrap.className = "sliderWrap";
+
+        var sliderRow = document.createElement('div');
+        sliderRow.className = "sliderRow";
+        var minLabel = document.createElement('span');
+        minLabel.className = "sliderMin";
+        var maxLabel = document.createElement('span');
+        maxLabel.className = "sliderMax";
+        sliderRow.appendChild(minLabel);
+        sliderRow.appendChild(input);
+        sliderRow.appendChild(maxLabel);
+
+        var valueOut = document.createElement('output');
+        valueOut.className = "sliderValue";
+
+        sliderWrap.appendChild(sliderRow);
+        sliderWrap.appendChild(valueOut);
+        fieldDiv.appendChild(sliderWrap);
+        syncSliderOutput(input);   // fills in min, max and current value
+    } else {
+        fieldDiv.appendChild(input);
+    }
     return fieldDiv;
 }
+
+// >>> CHANGED: now refreshes the min label, max label AND current value of a slider
+// (min/max matter because the event sliders change range when the target changes)
+// Also exported: code that sets slider.value from JS (loadJson.js) must call it,
+// because setting .value in code does not fire an 'input' event.
+function syncSliderOutput(input){
+    var wrap = input.closest('.sliderWrap');
+    if (!wrap) { return; }
+    wrap.querySelector('.sliderMin').textContent = input.min;
+    wrap.querySelector('.sliderMax').textContent = input.max;
+    wrap.querySelector('output').textContent = input.value;
+}
+document.addEventListener('input', function(e){
+    if (e.target.type === 'range') { syncSliderOutput(e.target); }
+});
 
 
 //====== a box with all the fields of a list =====
@@ -197,7 +266,8 @@ document.getElementById("addAudio").addEventListener('click', function(){
     //====DELETE AUDIO BUTTON
     var deletAudioButton =document.createElement('button');
     deletAudioButton.className='removeAudio';
-    deletAudioButton.textContent="- Remove Audio";
+    // deletAudioButton.textContent="- Remove Audio";
+    setDeleteIcon(deletAudioButton); 
     deletAudioButton.type="button";
 
     divAudioFile.appendChild(labelAudioFile);
@@ -335,32 +405,25 @@ function createEffectRow(effectsListSection){
         refreshTargetDropdowns(effectRow.closest('.groupCard'));
     });
 
-    // //optional id (needed if a group has two effects of the same type)
-    var effectIdInput = document.createElement('input');
-    effectIdInput.type = "text";
-    effectIdInput.className = "effectId";
-    effectIdInput.placeholder = "ID (optional)";
-
     //delete button
-    var deleteButton = document.createElement('button');
+      var deleteButton = document.createElement('button');
     deleteButton.type = "button";
-    deleteButton.textContent = "- Delete";
+    // deleteButton.textContent = "- Delete";
+    setDeleteIcon(deleteButton); 
     deleteButton.addEventListener('click', function(){
         var card = effectRow.closest('.groupCard');   // get the card BEFORE removing
         effectRow.remove();
         refreshTargetDropdowns(card);
     });
 
-    //new div to fix UI
-    // var subEffectSection = document.createElement('div');
-    // subEffectSection.className = "row subEffectSection";
+
 
     //put everything in the row, then the row in the list
          // effectRow.appendChild(effectLabel);
     // effectRow.appendChild(subEffectSection);
     effectRow.appendChild(selectEffectDiv);
     effectRow.appendChild(fieldsBox);
-    effectRow.appendChild(effectIdInput);
+    // effectRow.appendChild(effectIdInput);
     effectRow.appendChild(deleteButton);
     effectsListSection.appendChild(effectRow);
 
@@ -403,7 +466,8 @@ function createEffectInput(newCard){
             updateLfoVisibility(e.target.closest('.effectRow'));
         }
         //typing a number can't change which targets exist, everything else can
-        if (e.target.type !== 'number') {
+        // >>> CHANGED: also skip sliders, otherwise dragging one would rebuild the target dropdowns on every pixel
+        if (e.target.type !== 'number' && e.target.type !== 'range') {
             refreshTargetDropdowns(newCard);
         }
     });
@@ -422,6 +486,7 @@ function createPhoneInput(newCard){
         var newPhoneInputSection= document.createElement('div');
         newPhoneInputSection.className="row phoneInputSection";
 
+        // >>> REVERTED: back to the original number input (no slider)
         //create label
         var nbOfPhonesLabel= document.createElement('label');
         nbOfPhonesLabel.textContent="Select a number of phones you want in this group?"
@@ -463,7 +528,7 @@ function getEffectInfo(effectRow){
 
 //list of every target that exists in this group
 function getTargets(card){
-    var targets = [{ value: "volume", label: "volume", min: 0, max: 1, ramp: true }];
+    var targets = [{ value: "volume", label: "volume", min: 0, max: 1, step: 0.01, ramp: true }];
 
     card.querySelectorAll('.effectRow').forEach(function(effectRow){
         var info = getEffectInfo(effectRow);
@@ -474,7 +539,7 @@ function getTargets(card){
             if (t.showWhen === "nolfo" && info.lfoOn) { return; }
 
             var name = info.id + "." + t.setting;   // e.g. reverb.mix
-            targets.push({ value: name, label: name, min: t.min, max: t.max, ramp: t.ramp });
+            targets.push({ value: name, label: name, min: t.min, max: t.max, step: t.step, ramp: t.ramp });   // >>> CHANGED: step added
         });
     });
 
@@ -501,15 +566,19 @@ function refreshTargetDropdowns(card){
         });
         fillSelect(select, options, "Choose target");
 
-        //limit the number inputs to the chosen target's range
+        //limit the sliders to the chosen target's range
         var chosen = targets.find(function(t){ return t.value === select.value; });
+        // >>> CHANGED: sliders must always keep a min/max, so with no target chosen we leave the last range as is
+        // (before: min/max were removed)
         eventRow.querySelectorAll('.targetLimited').forEach(function(input){
             if (chosen) {
+                var previous = Number(input.value);   // remember it: changing min/max makes the browser clamp the value
                 input.min = chosen.min;
                 input.max = chosen.max;
-            } else {
-                input.removeAttribute('min');
-                input.removeAttribute('max');
+                input.step = chosen.step;
+                // put the old value back, but never outside the new range
+                input.value = Math.min(Math.max(previous, chosen.min), chosen.max);
+                syncSliderOutput(input);
             }
         });
     });
@@ -524,7 +593,7 @@ function createEventRow(eventsListSection){
     eventRow.className = "row eventRow";
 
     //"at" input (createField works for a plain number too)
-    var atDiv = createField({ key: 'at', label: 'At (seconds)', min: 0, default: 0 });
+    var atDiv = createField({ key: 'at', label: 'At (seconds)', kind: 'number', min: 0, default: 0 });   // >>> CHANGED: kind: 'number' keeps it a number box, not a slider
 
     //action dropdown, one option for each action in EVENTS
     var actionDiv = document.createElement('div');
@@ -552,7 +621,7 @@ function createEventRow(eventsListSection){
     //delete button
     var deleteButton = document.createElement('button');
     deleteButton.type = "button";
-    deleteButton.textContent = "- Delete";
+    setDeleteIcon(deleteButton);   // >>> CHANGED: was deleteButton.textContent = "- Delete";
     deleteButton.addEventListener('click', function(){
         eventRow.remove();
     });
@@ -659,5 +728,6 @@ document.getElementById("groupSelection").addEventListener('change', function(){
 // Export functions to be reused by loadJson.js
 export {
     refreshSoundDropdowns,
-    refreshTargetDropdowns
+    refreshTargetDropdowns,
+    syncSliderOutput   // >>> NEW
 };
