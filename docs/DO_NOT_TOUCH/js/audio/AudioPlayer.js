@@ -99,97 +99,128 @@ function setValue(target, value, time) {
     else target.apply(value);
 }
 
+// Builds one group of the score: its effect chain, a player per sound it uses,
+// and its events. Problems that make the player skip something are passed to
+// `warn` (they'd otherwise go unnoticed). `soundFor(path)` gives what a
+// Tone.Player loads for a sound: a URL, or an already-decoded AudioBuffer.
+function buildGroup(score, key, soundFor, warn) {
+    const groupPart = score.groups[key];
+    const volume = new Tone.Gain(1).toDestination();
+
+    // Anything an event can "set" or "ramp", by name: "volume" or "<effectId>.<setting>".
+    // An effect's id defaults to its type, so one reverb is just "reverb.mix".
+    // `initial` is the value it returns to whenever the timeline restarts.
+    const params = { volume: { param: volume.gain, initial: 1 } };
+    const players = {}; // filled in below; created first so "drift" can reach them
+    let rateTarget = null; // the "drift.rate" param, if this group drifts
+    const effectNodes = [];
+    const extras = [];  // nodes outside the chain (LFOs)
+    const pending = []; // effects still getting ready (reverb)
+    for (const effect of groupPart.effects ?? []) {
+        const created = createEffect(effect, players);
+        if (!created) {
+            warn(`Unknown effect type "${effect.type}", so it was left out.`);
+            continue;
+        }
+        if (created.node) effectNodes.push(created.node);
+        if (created.extras) extras.push(...created.extras);
+        if (created.ready) pending.push(created.ready);
+        const id = effect.id ?? effect.type;
+        if (params[`${id}.${Object.keys(created.params)[0]}`]) {
+            warn(`Two effects are both called "${id}"; events can only control the last one. Give one an ID.`);
+        }
+        for (const [name, target] of Object.entries(created.params)) {
+            params[`${id}.${name}`] = target;
+            if (target.isRate) rateTarget = `${id}.${name}`;
+        }
+    }
+    Tone.connectSeries(...effectNodes, volume);
+    const input = effectNodes[0] ?? volume;
+
+    // One player per sound this group actually uses.
+    const events = [];
+    for (let event of groupPart.events ?? []) {
+        // The form writes the volume target as "gain".
+        if (event.set === "gain") event = { ...event, set: "volume" };
+        if (event.ramp === "gain") event = { ...event, ramp: "volume" };
+
+        const sound = event.play ?? event.stop;
+        const target = event.set ?? event.ramp;
+        if (sound !== undefined) {
+            const soundPath = score.sounds?.[sound];
+            if (!soundPath) {
+                warn(`Event at ${event.at}s uses sound "${sound}", which isn't in the sounds list; skipped.`, event);
+                continue;
+            }
+            if (!players[sound]) {
+                const source = soundFor(soundPath, sound);
+                if (!source) {
+                    warn(`Sound "${sound}" has no audio file; its events were skipped.`, event);
+                    continue;
+                }
+                players[sound] = new Tone.Player(source).connect(input);
+            }
+            if (rateTarget) players[sound].playbackRate = params[rateTarget].initial;
+            // "loop": true loops the whole file; "loop": [start, end] loops that
+            // section (seconds into the file). It applies every time the sound plays.
+            if (event.loop) {
+                const [loopStart, loopEnd] = Array.isArray(event.loop) ? event.loop : [0, 0]; // 0 end = file end
+                Object.assign(players[sound], { loop: true, loopStart, loopEnd });
+            }
+        } else if (target !== undefined && !params[target]) {
+            warn(`Event at ${event.at}s changes "${target}", which no effect in this group has; skipped.`, event);
+            continue;
+        } else if (event.ramp !== undefined && !params[target].param) {
+            warn(`Event at ${event.at}s ramps "${target}", which can only be set, not ramped; skipped.`, event);
+            continue;
+        }
+        events.push(event);
+    }
+    // Sort by time (stable, so same-time events keep the order the artist wrote).
+    events.sort((a, b) => a.at - b.at);
+
+    return {
+        key, players, params, events, rateTarget, pending,
+        nodes: [...Object.values(players), ...extras, ...effectNodes, volume],
+    };
+}
+
 export class AudioPlayer {
     constructor() {
         this.clockOffset = 0; // serverTime - localTime, in ms
         this.startAt = null;
-        this.part = null;
+        this.part = null;     // { groups: [built group, ...], nodes: [every node] }
+        this.warnings = [];   // [{ group, message, event? }] from the last initialize()
         this.loading = 0; // counts initialize() calls, so a stale one can tell it's been replaced
     }
 
     // Builds `group`'s part of `score`, replacing any part already built (the
-    // conductor loaded a different piece, or this phone moved group). Sound
-    // paths in the score are looked up relative to `soundsUrl`, the piece's folder.
+    // conductor loaded a different piece, or this phone moved group). `group`
+    // can also be a list of groups, which then play together on one timeline
+    // (the form's preview does this). `sounds` says where sound files are:
+    // usually the piece's folder (paths in the score are relative to it), or a
+    // function (path, soundName) giving a URL or AudioBuffer for each sound.
     // `startAt` is non-null if the piece is already playing.
-    async initialize(score, group, startAt = null, soundsUrl = document.baseURI) {
-        if (!score?.groups?.[group]) {
-            throw new Error(`Score does not contain group "${group}".`);
+    async initialize(score, group, startAt = null, sounds = document.baseURI) {
+        const keys = Array.isArray(group) ? group : [group];
+        for (const key of keys) {
+            if (!score?.groups?.[key]) throw new Error(`Score does not contain group "${key}".`);
         }
         const loading = ++this.loading;
         this.dispose();
         this.startAt = startAt ?? null;
 
-        const groupPart = score.groups[group];
-        const volume = new Tone.Gain(1).toDestination();
-
-        // Anything an event can "set" or "ramp", by name: "volume" or "<effectId>.<setting>".
-        // An effect's id defaults to its type, so one reverb is just "reverb.mix".
-        // `initial` is the value it returns to whenever the timeline restarts.
-        const params = { volume: { param: volume.gain, initial: 1 } };
-        const players = {}; // filled in below; created first so "drift" can reach them
-        let rateTarget = null; // the "drift.rate" param, if this group drifts
-        const effectNodes = [];
-        const extras = [];  // nodes outside the chain (LFOs)
-        const pending = []; // effects still getting ready (reverb)
-        for (const effect of groupPart.effects ?? []) {
-            const created = createEffect(effect, players);
-            if (!created) continue;
-            if (created.node) effectNodes.push(created.node);
-            if (created.extras) extras.push(...created.extras);
-            if (created.ready) pending.push(created.ready);
-            const id = effect.id ?? effect.type;
-            for (const [name, target] of Object.entries(created.params)) {
-                params[`${id}.${name}`] = target;
-                if (target.isRate) rateTarget = `${id}.${name}`;
-            }
-        }
-        Tone.connectSeries(...effectNodes, volume);
-        const input = effectNodes[0] ?? volume;
-
-        // One player per sound this group actually uses.
-        const events = [];
-        for (let event of groupPart.events ?? []) {
-            // The form writes the volume target as "gain".
-            if (event.set === "gain") event = { ...event, set: "volume" };
-            if (event.ramp === "gain") event = { ...event, ramp: "volume" };
-
-            const sound = event.play ?? event.stop;
-            const target = event.set ?? event.ramp;
-            if (sound !== undefined) {
-                const soundPath = score.sounds?.[sound];
-                if (!soundPath) {
-                    console.warn("Unknown sound, skipping event:", event);
-                    continue;
-                }
-                players[sound] ??= new Tone.Player(
-                    new URL(soundPath, soundsUrl).href,
-                ).connect(input);
-                if (rateTarget) players[sound].playbackRate = params[rateTarget].initial;
-                // "loop": true loops the whole file; "loop": [start, end] loops that
-                // section (seconds into the file). It applies every time the sound plays.
-                if (event.loop) {
-                    const [loopStart, loopEnd] = Array.isArray(event.loop) ? event.loop : [0, 0]; // 0 end = file end
-                    Object.assign(players[sound], { loop: true, loopStart, loopEnd });
-                }
-            } else if (target !== undefined && !params[target]) {
-                console.warn("Unknown target, skipping event:", event);
-                continue;
-            } else if (event.ramp !== undefined && !params[target].param) {
-                console.warn(`"${target}" can only be set, not ramped; skipping:`, event);
-                continue;
-            }
-            events.push(event);
-        }
-        // Sort by time (stable, so same-time events keep the order the artist wrote).
-        events.sort((a, b) => a.at - b.at);
-
-        const part = {
-            players, params, events, rateTarget,
-            nodes: [...Object.values(players), ...extras, ...effectNodes, volume],
-        };
+        const soundFor = typeof sounds === "function" ? sounds : (path) => new URL(path, sounds).href;
+        const warnings = [];
+        const groups = keys.map((key) => buildGroup(score, key, soundFor, (message, event) => {
+            console.warn(`Group "${key}": ${message}`, event ?? "");
+            warnings.push({ group: key, message, event });
+        }));
+        this.warnings = warnings;
+        const part = { groups, nodes: groups.flatMap((g) => g.nodes) };
         try {
             await Tone.loaded(); // wait for every audio file to finish loading
-            await Promise.all(pending);
+            await Promise.all(groups.flatMap((g) => g.pending));
         } catch (error) {
             for (const node of part.nodes) node.dispose();
             throw error;
@@ -308,26 +339,28 @@ export class AudioPlayer {
         });
     }
 
-    applyEvent(event, time) {
+    // Performs one of `group`'s events at audio-clock `time`.
+    applyEvent(group, event, time) {
         if (event.play !== undefined) {
-            this.part.players[event.play].start(time);
+            group.players[event.play].start(time);
         } else if (event.stop !== undefined) {
-            this.part.players[event.stop].stop(time);
+            group.players[event.stop].stop(time);
         } else if (event.set !== undefined) {
-            setValue(this.part.params[event.set], event.value, time);
+            setValue(group.params[event.set], event.value, time);
         } else if (event.ramp !== undefined) {
-            this.part.params[event.ramp].param.rampTo(event.to, event.over, time);
+            group.params[event.ramp].param.rampTo(event.to, event.over, time);
         }
     }
 
-    // Puts sounds and params into the state they'd be in at `position` seconds,
-    // as if every earlier event had already run. Only matters for late joiners.
-    catchUp(position, startTime) {
-        const { rateTarget } = this.part;
+    // Puts `group`'s sounds and params into the state they'd be in at `position`
+    // seconds, as if every earlier event had already run. Matters for late
+    // joiners, and for a preview that starts partway through.
+    catchUp(group, position, startTime) {
+        const { rateTarget } = group;
         const values = {};
         const ramps = {};   // ramps still in progress at `position`
         const playing = {}; // sound -> { offset: seconds into the file, since: timeline time }
-        for (const [name, { initial }] of Object.entries(this.part.params)) {
+        for (const [name, { initial }] of Object.entries(group.params)) {
             values[name] = initial;
         }
         // Under "drift" the file moves at `rate` seconds per second, so a playing
@@ -340,7 +373,7 @@ export class AudioPlayer {
             }
         };
 
-        for (const event of this.part.events) {
+        for (const event of group.events) {
             if (event.at >= position) break;
             if (event.play !== undefined) {
                 playing[event.play] = { offset: 0, since: event.at };
@@ -368,7 +401,7 @@ export class AudioPlayer {
             }
         }
 
-        for (const [name, target] of Object.entries(this.part.params)) {
+        for (const [name, target] of Object.entries(group.params)) {
             target.param?.cancelScheduledValues(0);
             setValue(target, values[name], Tone.now());
             if (ramps[name]) {
@@ -377,7 +410,7 @@ export class AudioPlayer {
         }
         advance(position);
         for (const [sound, { offset }] of Object.entries(playing)) {
-            const player = this.part.players[sound];
+            const player = group.players[sound];
             if (player.loop) {
                 // Fold the position back into the loop once it has gone around.
                 const loopEnd = player.loopEnd || player.buffer.duration;
@@ -408,10 +441,12 @@ export class AudioPlayer {
         const position = Math.max(0, -delay);
         const startTime = Tone.now() + Math.max(0, delay);
 
-        this.catchUp(position, startTime);
-        for (const event of this.part.events) {
-            if (event.at >= position) {
-                transport.schedule((time) => this.applyEvent(event, time), event.at);
+        for (const group of this.part.groups) {
+            this.catchUp(group, position, startTime);
+            for (const event of group.events) {
+                if (event.at >= position) {
+                    transport.schedule((time) => this.applyEvent(group, event, time), event.at);
+                }
             }
         }
         transport.start(startTime, position);
@@ -422,8 +457,10 @@ export class AudioPlayer {
         const transport = Tone.getTransport();
         transport.stop();
         transport.cancel();
-        for (const player of Object.values(this.part.players)) {
-            player.stop();
+        for (const group of this.part.groups) {
+            for (const player of Object.values(group.players)) {
+                player.stop();
+            }
         }
     }
 

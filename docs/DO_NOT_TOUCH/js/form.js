@@ -683,6 +683,23 @@ function createEventInput(newCard){
 }
 
 
+//===========PREVIEW TOGGLE=========
+//"Include in preview" tick box at the bottom of a card, ticked to start
+function createPreviewToggle(newCard){
+    var previewLabel = document.createElement('label');
+    previewLabel.className = "previewToggle";
+
+    var previewCheckbox = document.createElement('input');
+    previewCheckbox.type = "checkbox";
+    previewCheckbox.className = "previewGroup";
+    previewCheckbox.checked = true;
+
+    previewLabel.appendChild(previewCheckbox);
+    previewLabel.appendChild(document.createTextNode(" Include in preview"));
+    newCard.appendChild(previewLabel);
+}
+
+
 //===========CARD CREATION=========
 // Create a Card for Group with a title, a phone input, an effect input and event input=====
  function createGroupCard(index){
@@ -703,6 +720,9 @@ function createEventInput(newCard){
 
         //add an event input for each group
         createEventInput(newCard);
+
+        //tick box: play this group when "Play preview" is pressed (see preview.js)
+        createPreviewToggle(newCard);
 
         return newCard;
 }
