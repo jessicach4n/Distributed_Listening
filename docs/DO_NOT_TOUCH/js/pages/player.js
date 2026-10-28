@@ -12,6 +12,7 @@ const connectionStatus = document.getElementById("connection-status");
 const statusText = document.getElementById("status");
 const groupInfo = document.getElementById("group-info");
 const groupId = document.getElementById("group-id");
+const menuGroupId = document.getElementById("menu-group-id");
 const deviceIdText = document.getElementById("device-id");
 const menuDeviceId = document.getElementById("menu-device-id");
 const infoBtn = document.getElementById("info-btn");
@@ -79,7 +80,9 @@ const socket = new Socket(WS_URL, {
         window.clearTimeout(groupScreenTimer);
         window.clearTimeout(deviceIdTimer);
         groupInfo.hidden = false;
-        groupId.textContent = message.score.groups[message.group]?.name || `Group ${message.groupNumber}`;
+        const currentGroup = message.score.groups[message.group]?.name || `Group ${message.groupNumber}`;
+        groupId.textContent = currentGroup;
+        menuGroupId.textContent = currentGroup;
         showStatus(`Loading “${message.piece.title}”…`);
         if (!hasEntered) showScreen(waitingScreen);
         audioPlayer.initialize(message.score, message.group, message.startAt, soundsUrl)
