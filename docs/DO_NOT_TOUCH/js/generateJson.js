@@ -87,7 +87,8 @@ function readGroups() {
 }
 
 // ======= BUILD + DOWNLOAD ======= //
-function buildJson() {
+// Also used by preview.js, so the preview plays exactly what would be downloaded.
+export function buildJson() {
     return {
         title: document.getElementById('projectName').value.trim(),
         sounds: readSounds(),

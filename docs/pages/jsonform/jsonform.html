@@ -2,9 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <!-- Tone.js (global `Tone`) for the preview, loaded before the modules that use it -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/15.1.22/Tone.js"></script>
     <script type="module" src="../../DO_NOT_TOUCH/js/form.js"></script>
     <script type="module" src="../../DO_NOT_TOUCH/js/generateJson.js"></script>
     <script type="module" src="../../DO_NOT_TOUCH/js/loadJson.js"></script>
+    <script type="module" src="../../DO_NOT_TOUCH/js/preview.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../global.css">
@@ -67,8 +70,21 @@
 
         <br><br>
 
-        <section id="groupeSection">   
+        <section id="groupeSection">
 
+        </section>
+
+        <!-- Preview: plays the groups ticked "Include in preview", with their current effects and events -->
+        <section id="previewSection">
+            <h3>Preview</h3>
+            <p class="description">Hear the ticked groups as they are now. Press Play again after making changes.</p>
+            <label for="previewStart">Start from</label>
+            <input type="text" id="previewStart" placeholder="0:00" inputmode="decimal">
+            <button type="button" id="previewPlay">Play preview</button>
+            <button type="button" id="previewStop" disabled>Stop</button>
+            <span id="previewTime">0:00</span>
+            <p id="previewStatus" role="status"></p>
+            <ul id="previewWarnings"></ul>
         </section>
 
        <button type="submit" id="generateJson"> Generate JSON File</button>
