@@ -141,6 +141,14 @@ wss.on("connection", (socket) => {
             sendPiece(phone);
             broadcastStatus();
         break;
+        case "leave":
+            if (!phone) break;
+            phone.stop();
+            phones.delete(phone);
+            console.log(`Phone ${phone.id} left, ${phones.size} phones`);
+            phone = null;
+            broadcastStatus();
+        break;
 
         // --- From the conductor page ---
         case "conductor":
