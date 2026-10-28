@@ -1,4 +1,4 @@
-export const WS_URL = location.hostname === "localhost" || location.hostname === "127.0.0.1"
+export const WS_URL = location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.hostname === "0.0.0.0"
   ? "ws://localhost:8080"
   : "wss://distributed-listening.onrender.com";
 

@@ -5,7 +5,8 @@ const pieces = require("./components/pieces");
 const ALLOWED_ORIGINS = [
   "https://jessicach4n.github.io",
   "http://localhost:5500",
-  "http://127.0.0.1:5500"
+  "http://127.0.0.1:5500",
+  "http://0.0.0.0:5500",
 ];
 
 const PORT = process.env.PORT || 8080;
@@ -138,6 +139,14 @@ wss.on("connection", (socket) => {
                 console.log(`Phone ${phone.id} joined (group ${phone.assignedGroup}), ${phones.size} phones`);
             }
             sendPiece(phone);
+            broadcastStatus();
+        break;
+        case "leave":
+            if (!phone) break;
+            phone.stop();
+            phones.delete(phone);
+            console.log(`Phone ${phone.id} left, ${phones.size} phones`);
+            phone = null;
             broadcastStatus();
         break;
 

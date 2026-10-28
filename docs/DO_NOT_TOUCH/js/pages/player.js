@@ -12,6 +12,7 @@ const connectionStatus = document.getElementById("connection-status");
 const statusText = document.getElementById("status");
 const groupInfo = document.getElementById("group-info");
 const groupId = document.getElementById("group-id");
+const menuGroupId = document.getElementById("menu-group-id");
 const deviceIdText = document.getElementById("device-id");
 const menuDeviceId = document.getElementById("menu-device-id");
 const infoBtn = document.getElementById("info-btn");
@@ -22,7 +23,8 @@ const quitBtn = document.getElementById("quit-btn");
 
 const audioPlayer = new AudioPlayer();
 let latestPiece = null; // the last "piece" message, so a replaced load doesn't update the page
-let hasEntered = false;
+let hasReachedCanvas = false;
+let isJoinedAsParticipant = false;
 let groupScreenTimer;
 let deviceIdTimer;
 
@@ -51,22 +53,25 @@ const socket = new Socket(WS_URL, {
   onClose() {
     startBtn.disabled = true;
     connectionStatus.textContent = "Lost connection to the server. Reload the page to rejoin.";
-    if (!hasEntered && landingScreen.hidden) {
+    if (!hasReachedCanvas && landingScreen.hidden) {
       showStatus("Lost connection to the server. Reload the page to rejoin.");
     }
   },
 
   onMessage(message) {
+    if (!isJoinedAsParticipant) return;
+
     switch (message.type) {
       case "waiting":
         if (message.deviceId !== undefined) setDeviceId(message.deviceId);
         latestPiece = null;
-        hasEntered = false;
+        hasReachedCanvas = false;
         window.clearTimeout(groupScreenTimer);
         window.clearTimeout(deviceIdTimer);
         audioPlayer.reset();
         groupInfo.hidden = true;
         groupId.textContent = "";
+        menuGroupId.textContent = "";
         showScreen(waitingScreen);
         showStatus("Waiting for the conductor to choose a piece…");
         break;
@@ -79,19 +84,21 @@ const socket = new Socket(WS_URL, {
         window.clearTimeout(groupScreenTimer);
         window.clearTimeout(deviceIdTimer);
         groupInfo.hidden = false;
-        groupId.textContent = message.score.groups[message.group]?.name || `Group ${message.groupNumber}`;
+        const currentGroup = message.score.groups[message.group]?.name || `Group ${message.groupNumber}`;
+        groupId.textContent = currentGroup;
+        menuGroupId.textContent = currentGroup;
         showStatus(`Loading “${message.piece.title}”…`);
-        if (!hasEntered) showScreen(waitingScreen);
+        if (!hasReachedCanvas) showScreen(waitingScreen);
         audioPlayer.initialize(message.score, message.group, message.startAt, soundsUrl)
           .then(() => {
             if (latestPiece !== message) return;
-            if (!hasEntered) {
+            if (!hasReachedCanvas) {
               groupScreenTimer = window.setTimeout(() => {
-                if (latestPiece !== message || hasEntered) return;
+                if (latestPiece !== message || hasReachedCanvas) return;
                 showScreen(deviceIdScreen);
                 deviceIdTimer = window.setTimeout(() => {
                   if (latestPiece !== message) return;
-                  hasEntered = true;
+                  hasReachedCanvas = true;
                   showScreen(canvasScreen);
                 }, 2500);
               }, 1500);
@@ -122,10 +129,12 @@ startBtn.addEventListener("click", async () => {
   try {
     // Tone.start() must run inside a user gesture to unlock audio.
     await Promise.all([audioPlayer.resume(), audioPlayer.syncClock(socket)]);
+    isJoinedAsParticipant = true;
     socket.send({ type: "ready" });
     showScreen(waitingScreen);
     showStatus("Waiting for the conductor to choose a piece…");
   } catch (error) {
+    isJoinedAsParticipant = false;
     console.error("Could not initialize audio:", error);
     connectionStatus.textContent = "Could not start audio. Please try again.";
     startBtn.disabled = false;
@@ -146,6 +155,19 @@ helpBtn.addEventListener("click", () => {
 quitBtn.addEventListener("click", () => {
   window.clearTimeout(groupScreenTimer);
   window.clearTimeout(deviceIdTimer);
-  socket.close();
-  window.location.assign("../../index.html");
+  latestPiece = null;
+  hasReachedCanvas = false;
+  audioPlayer.reset();
+  groupInfo.hidden = true;
+  groupId.textContent = "";
+  menuGroupId.textContent = "";
+  infoMenu.hidden = true;
+  infoBtn.setAttribute("aria-expanded", "false");
+
+  if (isJoinedAsParticipant && socket.socket.readyState === WebSocket.OPEN) {
+    socket.send({ type: "leave" });
+  }
+  isJoinedAsParticipant = false;
+  startBtn.disabled = socket.socket.readyState !== WebSocket.OPEN;
+  showScreen(landingScreen);
 });
