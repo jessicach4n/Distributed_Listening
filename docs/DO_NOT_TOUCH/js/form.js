@@ -1,10 +1,10 @@
 export const AUDIO_FOLDER_PATH = 'audio/';
 
-// >>> NEW: sliders need a max. "Over (seconds)" had no max before, so pick one that fits your project
+//   sliders need a max. "Over (seconds)" had no max before, so pick one that fits your project
 const SLIDER_MAX_TIME_SECONDS = 120;   // max for "Over (seconds)"
 
 // ========EFFECT =========
-// >>> CHANGED: every field and target below now has a `step` (sliders need one)
+//   every field and target below now has a `step` (sliders need one)
 const EFFECTS = {
     filter: {
         label: 'Filter',
@@ -64,7 +64,7 @@ const EFFECTS = {
 };
 
 // ========EVENT =========
-// >>> CHANGED: value / to / over now have min, max and step so they can be sliders
+//   value / to / over now have min, max and step so they can be sliders
 const EVENTS = {
     play: {
         label: 'Play',
@@ -95,12 +95,12 @@ const EVENTS = {
     },
 };
 
-// >>> NEW: the trash-can icon used by every "Delete" button
+//   the trash-can icon used by every "Delete" button
 const DELETE_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="45" height="44" viewBox="0 0 45 44" fill="none">
   <path d="M13.125 38.5C12.0938 38.5 11.2109 38.141 10.4766 37.4229C9.74219 36.7049 9.375 35.8417 9.375 34.8333L9.375 11H7.5L7.5 7.33333L16.875 7.33333V5.5L28.125 5.5V7.33333L37.5 7.33333V11H35.625V34.8333C35.625 35.8417 35.2578 36.7049 34.5234 37.4229C33.7891 38.141 32.9062 38.5 31.875 38.5L13.125 38.5ZM16.875 31.1667L20.625 31.1667L20.625 14.6667H16.875L16.875 31.1667ZM24.375 31.1667H28.125L28.125 14.6667H24.375L24.375 31.1667Z" fill="#03010100"/>
 </svg>`;
 
-// >>> NEW: turns a button into an icon-only delete button
+//   turns a button into an icon-only delete button
 function setDeleteIcon(button){
     button.classList.add('deleteButton');
     button.innerHTML = DELETE_ICON_SVG;
@@ -165,7 +165,7 @@ function createField(f){
         input.required = true;
 
     } else if (f.kind === 'number') {
-        // >>> NEW: plain number box (the original code), used by "At (seconds)"
+        //   plain number box (the original code), used by "At (seconds)"
         input = document.createElement('input');
         input.type = "number";
         input.step = "any";
@@ -175,10 +175,10 @@ function createField(f){
         if (f.default !== undefined) { input.value = f.default; }
 
     } else {
-        // >>> CHANGED: every other number field is a slider (type="range")
+        //   every other number field is a slider (type="range")
         input = document.createElement('input');
         input.type = "range";
-        // >>> NEW: min / max / step MUST be set before the value, otherwise the browser
+        //   min / max / step MUST be set before the value, otherwise the browser
         // clamps the default to its own 0-100 range
         input.min = f.min;
         input.max = f.max;
@@ -192,7 +192,7 @@ function createField(f){
     fieldDiv.appendChild(label);
 
     if (input.type === 'range') {
-        // >>> CHANGED: layout is   [min] ----o---- [max]
+        //   layout is   [min] ----o---- [max]
         //                              current value
         var sliderWrap = document.createElement('div');
         sliderWrap.className = "sliderWrap";
@@ -220,7 +220,7 @@ function createField(f){
     return fieldDiv;
 }
 
-// >>> CHANGED: now refreshes the min label, max label AND current value of a slider
+//   now refreshes the min label, max label AND current value of a slider
 // (min/max matter because the event sliders change range when the target changes)
 // Also exported: code that sets slider.value from JS (loadJson.js) must call it,
 // because setting .value in code does not fire an 'input' event.
@@ -466,7 +466,7 @@ function createEffectInput(newCard){
             updateLfoVisibility(e.target.closest('.effectRow'));
         }
         //typing a number can't change which targets exist, everything else can
-        // >>> CHANGED: also skip sliders, otherwise dragging one would rebuild the target dropdowns on every pixel
+        //   also skip sliders, otherwise dragging one would rebuild the target dropdowns on every pixel
         if (e.target.type !== 'number' && e.target.type !== 'range') {
             refreshTargetDropdowns(newCard);
         }
@@ -539,7 +539,7 @@ function getTargets(card){
             if (t.showWhen === "nolfo" && info.lfoOn) { return; }
 
             var name = info.id + "." + t.setting;   // e.g. reverb.mix
-            targets.push({ value: name, label: name, min: t.min, max: t.max, step: t.step, ramp: t.ramp });   // >>> CHANGED: step added
+            targets.push({ value: name, label: name, min: t.min, max: t.max, step: t.step, ramp: t.ramp });   //   step added
         });
     });
 
@@ -568,7 +568,7 @@ function refreshTargetDropdowns(card){
 
         //limit the sliders to the chosen target's range
         var chosen = targets.find(function(t){ return t.value === select.value; });
-        // >>> CHANGED: sliders must always keep a min/max, so with no target chosen we leave the last range as is
+        //   sliders must always keep a min/max, so with no target chosen we leave the last range as is
         // (before: min/max were removed)
         eventRow.querySelectorAll('.targetLimited').forEach(function(input){
             if (chosen) {
@@ -593,7 +593,7 @@ function createEventRow(eventsListSection){
     eventRow.className = "row eventRow";
 
     //"at" input (createField works for a plain number too)
-    var atDiv = createField({ key: 'at', label: 'At (seconds)', kind: 'number', min: 0, default: 0 });   // >>> CHANGED: kind: 'number' keeps it a number box, not a slider
+    var atDiv = createField({ key: 'at', label: 'At (seconds)', kind: 'number', min: 0, default: 0 });   //   kind: 'number' keeps it a number box, not a slider
 
     //action dropdown, one option for each action in EVENTS
     var actionDiv = document.createElement('div');
@@ -621,7 +621,7 @@ function createEventRow(eventsListSection){
     //delete button
     var deleteButton = document.createElement('button');
     deleteButton.type = "button";
-    setDeleteIcon(deleteButton);   // >>> CHANGED: was deleteButton.textContent = "- Delete";
+    setDeleteIcon(deleteButton);   //   was deleteButton.textContent = "- Delete";
     deleteButton.addEventListener('click', function(){
         eventRow.remove();
     });
