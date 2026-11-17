@@ -81,7 +81,8 @@
         <!-- Preview: plays the groups ticked "Include in preview", with their current effects and events -->
         <section id="previewSection">
             <h3>Preview</h3>
-            <p class="description">Hear the ticked groups as they are now. Press Play again after making changes.</p>
+            <p class="description">Hear the ticked groups as they are now. Press Play again after making changes. Click the timeline to choose where to start.</p>
+            <canvas id="previewTimeline" aria-label="Timeline of the score: one lane per group"></canvas>
             <label for="previewStart">Start from</label>
             <input type="text" id="previewStart" placeholder="0:00" inputmode="decimal">
             <button type="button" id="previewPlay">Play preview</button>

@@ -151,3 +151,11 @@ input[type="number"] {
   border-color: #ABABAB;
   border-style: solid 0.3px;
 }
+
+/* Score timeline (drawn by DO_NOT_TOUCH/js/timeline.js): the canvas needs a size to draw into */
+#previewTimeline {
+    display: block;
+    width: 100%;
+    height: 82px; /* grows with the number of groups (set by preview.js) */
+    cursor: crosshair;
+}
