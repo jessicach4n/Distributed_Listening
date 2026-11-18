@@ -11,8 +11,11 @@ function setPath(obj, path, value) {
     current[keys[keys.length - 1]] = value;
 }
 
+// Number boxes and sliders give numbers ("1.01" would be saved as text otherwise);
+// tick boxes give whether they're ticked
 function readInput(input) {
-    return input.type === 'number' ? Number(input.value) : input.value;
+    if (input.type === 'checkbox') return input.checked;
+    return input.type === 'number' || input.type === 'range' ? Number(input.value) : input.value;
 }
 
 // ======= SOUNDS ======= //
@@ -25,7 +28,8 @@ function readSounds() {
 }
 
 // ======= EFFECTS ======= //
-function readEffect(effectRow) {
+// Also used by editHelpers.js (copying effects and duplicating events)
+export function readEffect(effectRow) {
     const kind = effectRow.querySelector('.effectKind').value;
     const params = {};
 
@@ -57,7 +61,7 @@ function readEffect(effectRow) {
 }
 
 // ======= EVENTS ======= //
-function readEvent(eventRow) {
+export function readEvent(eventRow) {
     const action = eventRow.querySelector('.eventAction').value;
     const at = Number(eventRow.querySelector('[data-field="at"]').value);
     const f = {};
@@ -66,7 +70,7 @@ function readEvent(eventRow) {
     });
 
     const target = TARGET_ALIASES[f.target] || f.target;
-        if (action === 'play') {return {at: at, play: f.sound};}
+        if (action === 'play') {return f.loop ? {at: at, play: f.sound, loop: true} : {at: at, play: f.sound};}
         if (action === 'stop') {return {at: at, stop: f.sound};}
         if (action === 'set') {return {at: at, set: target, value: f.value};}
         if (action === 'ramp') {return {at: at, ramp: target, to: f.to, over: f.over};}

@@ -6,6 +6,7 @@ import { AudioPlayer } from "./audio/AudioPlayer.js";
 import { getAudioEntries } from "./form.js";
 import { buildJson } from "./generateJson.js";
 import { layoutTimeline, drawTimeline, LANE_HEIGHT, AXIS_HEIGHT } from "./timeline.js";
+import { checkScore, describeProblem } from "./checkScore.js";
 
 const timelineCanvas = document.getElementById("previewTimeline");
 const startInput = document.getElementById("previewStart");
@@ -14,12 +15,11 @@ const stopBtn = document.getElementById("previewStop");
 const timeText = document.getElementById("previewTime");
 const statusText = document.getElementById("previewStatus");
 const warningList = document.getElementById("previewWarnings");
-
-// An event later than this is almost certainly a typo (e.g. "10:30" typed into
-// a number box becomes 1030).
-const SUSPICIOUS_TIME = 600;
+const jsonView = document.getElementById("scoreJson");
+const copyJsonBtn = document.getElementById("copyScoreJson");
 
 const audioPlayer = new AudioPlayer();
+let playProblems = []; // audio files the last Play couldn't read (shown with the live problems)
 const decoded = new WeakMap(); // File -> Promise<AudioBuffer>, so each file is decoded once
 let ticker = null;
 
@@ -52,39 +52,15 @@ function decode(file) {
 
 const groupLabel = (key) => `Group ${Number(key) + 1}`;
 
-function showWarnings(warnings) {
-    warningList.replaceChildren();
-    for (const { group, message } of warnings) {
+// The problems list: what the phones would skip or you'd never hear (checked
+// live, checkScore.js), plus any audio file the last Play couldn't read
+let liveProblems = [];
+function showProblems() {
+    warningList.replaceChildren(...[...playProblems, ...liveProblems].map((p) => {
         const item = document.createElement("li");
-        item.textContent = group === undefined ? message : `${groupLabel(group)}: ${message}`;
-        warningList.append(item);
-    }
-}
-
-// Events the player keeps but you'd never hear: absurdly late, or after every
-// sound in the group has finished. Needs the decoded files, so runs after loading.
-function timingWarnings(groups) {
-    const warnings = [];
-    for (const group of groups) {
-        // When this group's last sound ends (a looping sound never does).
-        let end = 0;
-        for (const event of group.events) {
-            if (event.play === undefined) continue;
-            const player = group.players[event.play];
-            end = Math.max(end, player.loop ? Infinity : event.at + player.buffer.duration);
-        }
-        for (const event of group.events) {
-            if (event.at > SUSPICIOUS_TIME) {
-                warnings.push({ group: group.key, message: `An event is at ${event.at}s (${formatTime(event.at)}). Is that a typo?` });
-            } else if (event.play === undefined && end > 0 && event.at >= end) {
-                warnings.push({
-                    group: group.key,
-                    message: `An event at ${event.at}s comes after all this group's sounds have finished (${formatTime(end)}), so you won't hear it.`,
-                });
-            }
-        }
-    }
-    return warnings;
+        item.textContent = describeProblem(p);
+        return item;
+    }));
 }
 
 // ── Timeline ──────────────────────────────────────────────────────────────────
@@ -137,7 +113,11 @@ function scheduleTimeline() {
         timelineQueued = false;
         try {
             const fileByName = new Map(getAudioEntries().filter((e) => e.file).map((e) => [e.name, e.file]));
-            layout = layoutTimeline(buildJson(), (name) => (fileByName.has(name) ? fileDuration(fileByName.get(name)) : null));
+            const score = buildJson();
+            layout = layoutTimeline(score, (name) => (fileByName.has(name) ? fileDuration(fileByName.get(name)) : null));
+            liveProblems = checkScore(score, { hasFile: (name) => fileByName.has(name), layout });
+            showProblems();
+            jsonView.textContent = JSON.stringify(score, null, 2);
         } catch (error) {
             // The form can be half-built for a moment (rows being added); try again next change
             console.debug("Timeline not updated:", error);
@@ -205,21 +185,22 @@ async function play() {
         const used = new Set(selected.flatMap((key) =>
             score.groups[key].events.map((event) => event.play ?? event.stop).filter(Boolean)));
         const buffers = new Map();
-        const warnings = [];
+        playProblems = [];
         for (const name of used) {
             const path = score.sounds[name];
             const file = fileByPath.get(path);
-            if (!file) continue; // the player reports it as missing
+            if (!file) continue; // listed live as having no file
             try {
                 buffers.set(path, await decode(file));
             } catch (error) {
-                warnings.push({ message: `Could not read the audio file for "${name}" (${file.name}): ${error.message}` });
+                playProblems.push({ message: `Could not read the audio file for "${name}" (${file.name}): ${error.message}` });
             }
         }
+        // The rest (unknown targets, typos, ...) is already listed live, by the
+        // same rules the player follows, so only file problems are added here
+        showProblems();
 
         await audioPlayer.initialize(score, selected, null, (path) => buffers.get(path) ?? null);
-        warnings.push(...audioPlayer.warnings, ...timingWarnings(audioPlayer.part.groups));
-        showWarnings(warnings);
 
         // No server here: the "server clock" is just this computer's, and
         // starting `startFrom` seconds ago makes the timeline begin there.
@@ -266,6 +247,18 @@ timelineCanvas.addEventListener("mousemove", (event) => {
     if (timelineCanvas.title !== text) timelineCanvas.title = text;
 });
 
+// Copy the score.json the form would save (as shown under "score.json")
+copyJsonBtn.addEventListener("click", async () => {
+    const json = JSON.stringify(buildJson(), null, 2);
+    try {
+        await navigator.clipboard.writeText(json);
+        copyJsonBtn.textContent = "Copied!";
+    } catch (error) {
+        copyJsonBtn.textContent = "Couldn't copy: select the text below instead";
+    }
+    setTimeout(() => { copyJsonBtn.textContent = "Copy score.json"; }, 2000);
+});
+
 // Typing a start time moves the marker
 startInput.addEventListener("input", () => { if (!playing()) drawNow(); });
 
@@ -273,8 +266,9 @@ startInput.addEventListener("input", () => { if (!playing()) drawNow(); });
 // added or removed (which fire no input events, so watch the sections that
 // hold rows; not the whole form, whose preview status changes every frame)
 const form = document.getElementById("jsonForm");
-form.addEventListener("input", scheduleTimeline);
-form.addEventListener("change", scheduleTimeline);
+const edited = () => { playProblems = []; scheduleTimeline(); }; // Play's file problems may be fixed now
+form.addEventListener("input", edited);
+form.addEventListener("change", edited);
 const rowsChanged = new MutationObserver(scheduleTimeline);
 for (const id of ["audio_section", "groupeSection"]) {
     rowsChanged.observe(document.getElementById(id), { childList: true, subtree: true });

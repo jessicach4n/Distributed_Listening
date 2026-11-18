@@ -61,6 +61,13 @@ const EFFECTS = {
         fields: [{ key: 'pan', label: 'Pan (-1 left, 1 right)', min: -1, max: 1, step: 0.01, default: 0 }],
         targets: [{ setting: 'pan', min: -1, max: 1, step: 0.01, ramp: true }],
     },
+    // playback speed of every sound in the group (the audio engine's "drift"):
+    // two groups looping one sound at slightly different speeds drift apart
+    drift: {
+        label: 'Drift (speed)',
+        fields: [{ key: 'rate', label: 'Speed (1 = normal)', min: 0.5, max: 2, step: 0.001, default: 1 }],
+        targets: [{ setting: 'rate', min: 0.5, max: 2, step: 0.001, ramp: false }], // set only!
+    },
 };
 
 // ========EVENT =========
@@ -70,6 +77,7 @@ const EVENTS = {
         label: 'Play',
         fields: [
             { key: 'sound', label: 'Sound to play', kind: 'sound' },
+            { key: 'loop', label: 'Loop', kind: 'checkbox' },   // play it over and over until stopped
         ],
     },
     stop: {
@@ -110,8 +118,10 @@ function setDeleteIcon(button){
 
 //====== helper: rebuild a dropdown but keep the user's choice if it still exists =====
 // options is a list like [{value: 'pad', label: 'pad'}, ...]
-function fillSelect(select, options, placeholder){
+// renamed (optional) maps old values to new ones, so a renamed choice stays chosen
+function fillSelect(select, options, placeholder, renamed){
     var previous = select.value;
+    if (renamed && Object.prototype.hasOwnProperty.call(renamed, previous)) { previous = renamed[previous]; }
     select.textContent = "";
 
     var placeholderOption = document.createElement('option');
@@ -267,13 +277,14 @@ document.getElementById("addAudio").addEventListener('click', function(){
     var deletAudioButton =document.createElement('button');
     deletAudioButton.className='removeAudio';
     // deletAudioButton.textContent="- Remove Audio";
-    setDeleteIcon(deletAudioButton); 
+    setDeleteIcon(deletAudioButton);
     deletAudioButton.type="button";
 
     divAudioFile.appendChild(labelAudioFile);
     divAudioFile.appendChild(inputAudioFile);
 
     newRow.appendChild(divAudioFile);
+    newRow.appendChild(createSoundNameField());
     newRow.appendChild(deletAudioButton);
 
     document.getElementById('audio_section').appendChild(newRow);
@@ -289,17 +300,55 @@ document.getElementById('audio_section').addEventListener('click', function(even
     }
 });
 
-//===== CHOOSING AN AUDIO FILE =======
+//===== SOUND NAME =======
+// The name events use for this sound ("play pad"). Filled in from the file
+// name when a file is chosen; renaming it renames it in the events too.
+function createSoundNameField(){
+    var div = document.createElement('div');
+    div.className = 'column';
+    var label = document.createElement('label');
+    label.textContent = 'Sound name';
+    var input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'audioNameInput';
+    input.placeholder = 'e.g. rain';
+    div.appendChild(label);
+    div.appendChild(input);
+    return div;
+}
+
+// The name a row's sound goes by: its name box, else (from an older project)
+// the name it was loaded with, else its file's name without the extension
+function soundNameOf(row){
+    var nameInput = row.querySelector('.audioNameInput');
+    var typed = nameInput ? nameInput.value.trim() : '';
+    if (typed) { return typed; }
+    if (row.dataset.soundName) { return row.dataset.soundName; }
+    var input = row.querySelector('input[type="file"]');
+    var file = input && input.files[0];
+    return file ? file.name.replace(/\.[^.]+$/, '') : '';
+}
+
+//===== CHOOSING AN AUDIO FILE, OR RENAMING A SOUND =======
 document.getElementById('audio_section').addEventListener('input', function(event) {
     var t = event.target;
+    var row = t.closest('.row');
+    var renamed = {};
     if (t.type==='file' && t.files.length) {
-        var row = t.closest('.row');
-        delete row.dataset.soundName;
         delete row.dataset.soundPath;
         var note = row.querySelector('.audioLoadedNote');
         if (note) note.remove();
+        // a new file gets its own name, unless the sound already has one
+        var nameInput = row.querySelector('.audioNameInput');
+        if (nameInput && !nameInput.value.trim()) { nameInput.value = row.dataset.soundName || t.files[0].name.replace(/\.[^.]+$/, ''); }
+        delete row.dataset.soundName;
     }
-    refreshSoundDropdowns();
+    if (row) {
+        var now = soundNameOf(row);
+        if (row.dataset.currentName && row.dataset.currentName !== now) { renamed[row.dataset.currentName] = now; }
+        row.dataset.currentName = now;
+    }
+    refreshSoundDropdowns(renamed);
 })
 
 
@@ -309,15 +358,16 @@ export function getAudioEntries() {
     document.querySelectorAll('#audio_section .row').forEach(function(row) {
         var input = row.querySelector('input[type="file"]');
         var file = input && input.files[0];
+        var name = soundNameOf(row);
         if (file) {
             entries.push({
-                name: row.dataset.soundName || file.name.replace(/\.[^.]+$/, ''),
+                name: name,
                 path: AUDIO_FOLDER_PATH + file.name,
                 file: file
             });
-        } else if (row.dataset.soundName) {
+        } else if (name && row.dataset.soundPath) {
             entries.push({
-                name: row.dataset.soundName,
+                name: name,
                 path: row.dataset.soundPath,
                 file: null
             });
@@ -336,12 +386,13 @@ function getSoundNames(){
     return names;
 }
 
-function refreshSoundDropdowns(){
+// renamed (optional): { oldName: newName }, so events keep a renamed sound
+function refreshSoundDropdowns(renamed){
     var options = getSoundNames().map(function(name){
         return { value: name, label: name };
     });
     document.querySelectorAll('.soundSelect').forEach(function(select){
-        fillSelect(select, options, "Choose audio");
+        fillSelect(select, options, "Choose audio", renamed);
     });
 }
 
@@ -472,9 +523,19 @@ function createEffectInput(newCard){
         }
     });
 
+    //copy this group's effects to every other group (done in editHelpers.js)
+    var copyButton = document.createElement('button');
+    copyButton.className = "copyEffectsButton";
+    copyButton.type = "button";
+    copyButton.textContent = "Copy effects to every group";
+    copyButton.addEventListener('click', function(){
+        newCard.dispatchEvent(new CustomEvent('form:copy-effects', { bubbles: true }));
+    });
+
     effectSection.appendChild(title);
     effectSection.appendChild(effectsListSection);
     effectSection.appendChild(addButton);
+    effectSection.appendChild(copyButton);
     newCard.appendChild(effectSection);
 }
 
@@ -516,7 +577,9 @@ function getEffectInfo(effectRow){
         var typeSelect = effectRow.querySelector('.effectFields select');
         if (typeSelect) { jsonType = typeSelect.value; }
     }
-    var customId = effectRow.querySelector('.effectId').value.trim();
+    // only effects loaded from a project have an ID box (new rows don't), so it may be missing
+    var idInput = effectRow.querySelector('.effectId');
+    var customId = idInput ? idInput.value.trim() : '';
     var lfoBox = effectRow.querySelector('.effectFields input[type="checkbox"]');
 
     return {
@@ -626,9 +689,20 @@ function createEventRow(eventsListSection){
         eventRow.remove();
     });
 
+    //duplicate button: a copy of this event right below it (done in editHelpers.js)
+    var duplicateButton = document.createElement('button');
+    duplicateButton.type = "button";
+    duplicateButton.className = "duplicateEventButton";
+    duplicateButton.textContent = "Duplicate";
+    duplicateButton.title = "Add a copy of this event below it";
+    duplicateButton.addEventListener('click', function(){
+        eventRow.dispatchEvent(new CustomEvent('form:duplicate-event', { bubbles: true }));
+    });
+
     eventRow.appendChild(atDiv);
     eventRow.appendChild(actionDiv);
     eventRow.appendChild(fieldsBox);
+    eventRow.appendChild(duplicateButton);
     eventRow.appendChild(deleteButton);
     eventsListSection.appendChild(eventRow);
 
@@ -676,9 +750,19 @@ function createEventInput(newCard){
         }
     });
 
+    //put the events in time order (done in editHelpers.js)
+    var sortButton = document.createElement('button');
+    sortButton.className = "sortEventsButton";
+    sortButton.type = "button";
+    sortButton.textContent = "Sort by time";
+    sortButton.addEventListener('click', function(){
+        newCard.dispatchEvent(new CustomEvent('form:sort-events', { bubbles: true }));
+    });
+
     eventSection.appendChild(title);
     eventSection.appendChild(eventsListSection);
     eventSection.appendChild(addButton);
+    eventSection.appendChild(sortButton);
     newCard.appendChild(eventSection);
 }
 

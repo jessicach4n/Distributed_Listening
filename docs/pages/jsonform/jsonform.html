@@ -8,6 +8,7 @@
     <script type="module" src="../../DO_NOT_TOUCH/js/generateJson.js"></script>
     <script type="module" src="../../DO_NOT_TOUCH/js/loadJson.js"></script>
     <script type="module" src="../../DO_NOT_TOUCH/js/preview.js"></script>
+    <script type="module" src="../../DO_NOT_TOUCH/js/editHelpers.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../global.css">
@@ -19,10 +20,27 @@
 
     <!-- REUPLOAD JSON FILE / EDIT PROJECT -->
     <section id="loadJsonSection">
-        <label for="jsonFile">Load an existing project</label>
-        <p class="description">Upload a previously generated project (.ZIP) to make edits</p>
-        <input type="file" id="jsonFile" accept=".zip,.json,application/json,application/zip">
+        <div>
+            <label for="jsonFile">Load an existing project</label>
+            <p class="description">Upload a previously generated project (.ZIP) to make edits</p>
+            <input type="file" id="jsonFile" accept=".zip,.json,application/json,application/zip">
+        </div>
+
+        <div>
+            <label for="openLink">Or open one from GitHub</label>
+            <p class="description">Paste the link to a public repo (or a folder in it) holding score.json and an audio folder, e.g. https://github.com/you/your-piece</p>
+            <input type="url" id="openLink" size="50" placeholder="https://github.com/you/your-piece">
+            <button type="button" id="openLinkButton">Open</button>
+        </div>
+
+        <div>
+            <label for="openFolder">Or open a folder on this computer</label>
+            <p class="description">Choose the folder holding score.json and its audio folder</p>
+            <input type="file" id="openFolder" webkitdirectory multiple>
+        </div>
+
         <p id="loadJsonStatus" role="status"></p>
+        <ul id="loadJsonNotes"></ul>
     </section>
 
     <!-- JSON FORM -->
@@ -43,6 +61,10 @@
                 <div id="column">
                     <label>Upload Audio file</label>
                     <input type="file" class="audioFileInput" accept="audio/*">
+                </div>
+                <div class="column">
+                    <label>Sound name</label>
+                    <input type="text" class="audioNameInput" placeholder="e.g. rain">
                 </div>
                 <button class="removeAudio deleteButton" title="Delete" aria-label="Delete" type="button">
                     <svg xmlns="http://www.w3.org/2000/svg" width="45" height="44" viewBox="0 0 45 44" fill="none">
@@ -89,8 +111,15 @@
             <button type="button" id="previewStop" disabled>Stop</button>
             <span id="previewTime">0:00</span>
             <p id="previewStatus" role="status"></p>
-            <ul id="previewWarnings"></ul>
+            <ul id="previewWarnings" aria-label="Problems in the score"></ul>
         </section>
+
+        <!-- The score.json the form would save, kept up to date as you edit -->
+        <details id="scoreJsonView">
+            <summary>score.json</summary>
+            <button type="button" id="copyScoreJson">Copy score.json</button>
+            <pre id="scoreJson"></pre>
+        </details>
 
        <button type="submit" id="generateJson"> Generate JSON File</button>
 
