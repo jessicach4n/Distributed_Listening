@@ -83,6 +83,15 @@
     height: 100%;
 }
 
+#canvas-screen {
+    background: #0b0b14;   /* near-black with a slight blue tint */
+}
+
+#canvas-container canvas {
+    display: block;
+    pointer-events: none;
+}
+
 .player-menu {
     position: absolute;
     top: 1rem;
